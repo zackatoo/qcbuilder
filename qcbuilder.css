@@ -4,12 +4,23 @@
     float: left;
     width: 100%;
     overflow: hidden;
-    padding: 10px;
-    padding-left: 20px;
 }
 
 #title {
     color: #f4f4ef;
+    padding: 10px;
+    padding-left: 20px;
+}
+
+#github-icon {
+    position: absolute;
+    right: 1%;
+    top: 4px;
+    fill: white;
+}
+
+#github-icon:hover {
+    fill: #d4d4d4;
 }
 
 #dragbar {
