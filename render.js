@@ -32,52 +32,61 @@ function drawQuantumCircuit(context, circuit)
 {
     for (let i = 0; i < circuit.width; i++)
     {
-        drawQuantumLine(context, circuit.lines[i], {y: GATE_SPACE * (i + 1)});
+        drawQuantumLine(context, circuit.lines[i]);
     }
 }
 
-function drawQuantumLine(context, line, startPos)
+function drawQuantumLine(context, line)
 {
+    var hitbox = line.gates[0].hitbox;
     var lineStarts = [];
-    lineStarts[0] = startPos.x + PACKAGE_SIZE / 2;
+    lineStarts[0] = hitbox.cornerX + hitbox.width;
     var lineEnds = [];
+    var lineIndex = 0;
+
     for (let i = 0; i < line.length; i++)
     {
-        startPos.x = GATE_SPACE * line.gates[i].index + GATE_SPACE;
-        lineStarts[i + 1] = startPos.x + PACKAGE_SIZE / 2;
-        lineEnds[i] = startPos.x - PACKAGE_SIZE / 2;
-        drawQuantumGate(context, line.gates[i], startPos);
+        if (line.gates[i] != undefined)
+        {
+            if (i != 0)
+            {
+                var thisHitbox = line.gates[i].hitbox;
+                lineStarts[lineIndex + 1] = thisHitbox.cornerX + thisHitbox.width;
+                lineEnds[i] = line.gates[i].hitbox.cornerX;
+                lineIndex++;
+            }
+            drawQuantumGate(context, line.gates[i]);
+        }
     }
 
+    // Draws the black lines connecting each of the gates on the same quantum line
     context.beginPath();
     let i = 0;
     for (; i < lineEnds.length; i++)
     {
-        context.moveTo(0.5 + lineStarts[i], 0.5 + startPos.y);
-        context.lineTo(0.5+ lineEnds[i], 0.5 + startPos.y);
+        context.moveTo(0.5 + lineStarts[i], 0.5 + hitbox.midY);
+        context.lineTo(0.5+ lineEnds[i], 0.5 + hitbox.midY);
     }
 
-    context.moveTo(0.5 + lineStarts[i], 0.5 + startPos.y);
-    context.lineTo(context.canvas.width, 0.5 + startPos.y);
+    context.moveTo(0.5 + lineStarts[i], 0.5 + hitbox.midY);
+    context.lineTo(context.canvas.width, 0.5 + hitbox.midY);
     context.stroke();
 }
 
-function drawQuantumGate(context, gate, pos)
+function drawQuantumGate(context, gate)
 {
-    var corner = pair(pos.x - PACKAGE_SIZE / 2, pos.y - PACKAGE_SIZE / 2);
-    context.fillStyle = "#ffffff";
-    context.fillRect(corner.x, corner.y, PACKAGE_SIZE, PACKAGE_SIZE * (1 - gate.probability));
+    var hitbox = gate.hitbox;
+    var corner = hitbox.getCornerPosition();
+
+    context.fillStyle = "rgba(255,255,255," + gate.transparency + ")";
+    context.fillRect(corner.x, corner.y, hitbox.width, hitbox.height * (1 - gate.probability));
     context.fillStyle = gate.color;
-    context.fillRect(corner.x, corner.y + PACKAGE_SIZE * (1 - gate.probability), PACKAGE_SIZE, PACKAGE_SIZE * gate.probability);
-    context.strokeRect(corner.x, corner.y, PACKAGE_SIZE, PACKAGE_SIZE);
+    context.fillRect(corner.x, corner.y + hitbox.height * (1 - gate.probability), hitbox.width, hitbox.height * gate.probability);
+    context.strokeRect(corner.x, corner.y, hitbox.width, hitbox.height);
+
     context.font = "30px serif";
-    context.fillStyle = "#000000";
+    context.fillStyle = "rgba(0,0,0," + gate.transparency + ")";
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(gate.name, pos.x, pos.y);
-}
-
-function pair(x, y)
-{
-    return {x: x, y: y};
+    context.fillText(gate.name, hitbox.midX, hitbox.midY);
 }

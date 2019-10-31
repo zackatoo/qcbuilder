@@ -5,6 +5,7 @@ const Render = getRender();
 //const QVM = getQVM();
 
 var allCanvasElements = [];
+var allCanvasWraps = [];
 var allContexts = [];
 var allCircuits = [];
 var activeCanvas = 0;
@@ -12,7 +13,7 @@ var activeCanvas = 0;
 var body;
 var baseCanvas;
 
-const BOX_SIZE = Math.ceil(screen.height / 100);
+const BOX_SIZE = Math.floor(screen.height / 100);
 const PACKAGE_SIZE = BOX_SIZE * 5;
 const GATE_SPACE = PACKAGE_SIZE * 2;
 
@@ -39,33 +40,38 @@ function buildCanvas()
 {
     // Builds a new canvas to build a circuit in, then insert into the document
     var canvi = document.getElementById("canvi");
+
+    // Since we cannot place things directly into a canvas we need a wrapper to hold both the canvas 
+    // and all of it's hitboxes
+    var canvasWrap = document.createElement("div");
+    canvasWrap.className = "canvaswrap";
+
     var canvas = document.createElement("canvas");
     if (!canvas.getContext) return unsupported();
 
     var id = allCanvasElements.length;
     canvas.id = "canvas-" + id;
     canvas.className = "canvas";
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     var ctx = canvas.getContext("2d");
     allCanvasElements[id] = canvas;
     allContexts[id] = ctx;
 
-    allCircuits[id] = new QuantumCircuit(2);
+    canvi.append(canvasWrap);
+    canvasWrap.append(canvas);
 
-    Render.drawQuantumCircuit(ctx, allCircuits[id]);
+    allCircuits[id] = new QuantumCircuit(2, canvasWrap);
 
-    canvi.append(canvas);
+    resizeActiveCanvas();
     return true;
 }
 
 function resizeActiveCanvas()
 {
     var canvas = allCanvasElements[activeCanvas];
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = canvi.offsetWidth;
+    canvas.height = canvi.offsetHeight;
 
-    Render.drawQuantumCircuit(allContexts[activeCanvas], allCircuits[activeCanvas]);
+    updateCurrentCircuit();
 }
 
 function buildBaseCanvas()
@@ -77,11 +83,18 @@ function buildBaseCanvas()
 function resizeBaseCanvas()
 {
     var ctx = baseCanvas.getContext("2d");
-    baseCanvas.width = window.innerWidth;
-    baseCanvas.height = window.innerHeight;
+    baseCanvas.width = canvi.offsetWidth;
+    baseCanvas.height = canvi.offsetHeight;
 
     Render.drawGrid(ctx, "#eaeaea", baseCanvas.width, baseCanvas.height, BOX_SIZE);
     Render.drawGrid(ctx, "#bababa", baseCanvas.width, baseCanvas.height, PACKAGE_SIZE);
+}
+
+function updateCurrentCircuit()
+{
+    var ctx = allContexts[activeCanvas];
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
 }
 
 function unsupported()
