@@ -6,6 +6,7 @@ var rat = 1 / Math.sqrt(2);
 class QuantumCircuit
 {
     lines = [];
+    hitboxes = [];
     initalRegister;
     finalRegister;
     width;
@@ -51,12 +52,32 @@ const GATES = {
 
 class QuantumLine
 {
-    gates = [];
+    gates = []; // list of all gates in the line, undefined is a 'blank gate'
     length = 1;
 
     constructor(initalQubitName)
     {
-        this.gates[0] = {index: 0, gate: GATES.init, name: "|" + initalQubitName + "⟩", color: "rgb(0, 255, 0)", probability: 0};
+        this.gates[0] = new QuantumGate(0, GATES.init, "|" + initalQubitName + "⟩", "rgb(0, 255, 0)", 0);
+    }
+}
+
+class QuantumGate
+{
+    index;  // index is the location of the quantum gate on the line
+    gate;
+    name;
+    color;
+    probability;
+    hitbox;
+
+    constructor(index, gate, name, color, probability, hitbox)
+    {
+        this.index = index;
+        this.gate = gate;
+        this.name = name;
+        this.color = color;
+        this.probability = probability;
+        this.hitbox = hitbox;
     }
 }
 
