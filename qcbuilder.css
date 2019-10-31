@@ -49,12 +49,16 @@
     position: absolute;
 }
 
+.canvaswrap {
+    width: 100%;
+    height: 100%;
+}
+
 #canvas-base {
     overflow: hidden;
 }
 
 #canvi {
-    /*background-color: lightblue;*/
     width: 83%;
     left: 17%;
     top: 67px;
