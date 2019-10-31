@@ -97,6 +97,11 @@ function updateCurrentCircuit()
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
 }
 
+function buildInitStateSelector(lineIndex)
+{
+    // TODO. Issue #5.
+}
+
 function unsupported()
 {
     // User's browser is not up-to-date so we shut down the webapp.

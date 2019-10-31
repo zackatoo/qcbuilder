@@ -9,7 +9,7 @@ class Hitbox
     midY;
     width;
     height;
-    div;
+    div;    // The dom element 
 
     constructor(x, y, width, height, parent, middle)
     {

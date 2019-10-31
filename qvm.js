@@ -78,6 +78,13 @@ class QuantumLine
             this.gates[0].setTransparency(1);
             updateCurrentCircuit();
         });
+
+        initHitbox.setOnClick( () => 
+        {
+            buildInitStateSelector(index);
+        });
+
+        initHitbox.div.style.cursor = "pointer";
     }
 }
 
