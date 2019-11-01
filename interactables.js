@@ -3,21 +3,13 @@
 
 class Hitbox
 {
-    cornerX; // Position of the top left corner
-    cornerY;
-    midX;    // Position of the middle of the hitbox
-    midY;
-    width;
-    height;
-    div;    // The dom element 
-
     constructor(x, y, width, height, parent, middle)
     {
         if (middle != undefined && middle)
         {
-            this.cornerX = x - width / 2;
+            this.cornerX = x - width / 2; // Position of the top left corner
             this.cornerY = y - height / 2;
-            this.midX = x;
+            this.midX = x; // Position of the middle of the hitbox
             this.midY = y;
         }
         else
@@ -39,7 +31,7 @@ class Hitbox
         style.left = this.cornerX + "px";
         style.top = this.cornerY + "px";
 
-        parent.append(this.div);
+        parent.append(this.div); // The dom element 
     }
 
     setOnMouseEnter(onMouseEnter)

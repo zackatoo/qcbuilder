@@ -7,14 +7,9 @@ var rat = 1 / Math.sqrt(2);
 
 class QuantumCircuit
 {
-    lines = [];
-    hitboxes = [];
-    initalRegister;
-    finalRegister;
-    width;
-
     constructor(width, canvasWrap)
     {
+		this.lines = [];
         this.width = width;
         this.initalRegister = new QuReg(width);
 
@@ -54,14 +49,11 @@ const GATES = {
 
 class QuantumLine
 {
-    gates = []; // list of all gates in the line, undefined is a 'blank gate'
-    length = 1;
-    index;  // index is the location of the line in the circuit
-    canvasWrap;
-
     constructor(index, initalQubitName, canvasWrap)
     {
-        this.index = index;
+		this.length = 1; //TODO: do we need this?
+    	this.gates = []; // list of all gates in the line, undefined is a 'blank gate'
+        this.index = index; // index is the location of the line in the circuit
         this.canvasWrap = canvasWrap;
 
         var initHitbox = new Hitbox(GATE_SPACE, GATE_SPACE * (index + 1), PACKAGE_SIZE, PACKAGE_SIZE, canvasWrap, true);
@@ -90,19 +82,9 @@ class QuantumLine
 
 class QuantumGate
 {
-    index;  // index is the location of the quantum gate on the line
-    gate;
-    name;
-    qubit;  // This is the qubit state after the gate is applied to it
-    probability;
-    hitbox;
-
-    transparency;
-    color;
-
     constructor(index, gate, name, inputQubit, probability, hitbox)
     {
-        this.index = index;
+        this.index = index; // index is the location of the quantum gate on the line
         this.gate = gate;
         this.name = name;
         this.probability = probability;
@@ -152,7 +134,7 @@ class QuantumGate
     {
         switch (this.gate)
         {
-            case GATES.init: this.qubit = inputQubit; break;
+            case GATES.init: this.qubit = inputQubit; break; // This is the qubit state after the gate is applied to it
             case GATES.h: this.applyHGate(inputQubit); break;
         }
     }
@@ -169,11 +151,11 @@ class QuantumGate
 
 class QuReg
 {
-    // This quantum register class holds all the qubits that will be operated on
-    qubits = [];
 
     constructor(width)
     {
+		this.qubits = []; // This quantum register class holds all the qubits that will be operated on
+
         for (let i = 0; i < width; i++)
         {
             this.qubits[i] = new Qubit([1, 0, 0, 0]);
@@ -188,9 +170,6 @@ class QuReg
 
 class Qubit
 {
-    alpha = new Complex(0, 0);
-    beta = new Complex(0, 0);
-
     constructor(parameterArray)
     {
         this.alpha = new Complex(parameterArray[0], parameterArray[1]);
@@ -214,9 +193,6 @@ class Qubit
 
 class Complex
 {
-    real;
-    imag;
-
     constructor(real, imag)
     {
         this.real = real;
