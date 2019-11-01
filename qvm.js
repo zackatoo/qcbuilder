@@ -69,7 +69,7 @@ class QuantumLine
 
         initHitbox.setOnMouseEnter( () =>
         {
-            this.gates[0].setTransparency(0.5);
+            this.gates[0].setTransparency(0.4);
             updateCurrentCircuit();
         });
 
