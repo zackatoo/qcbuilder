@@ -45,13 +45,20 @@ function buildDragbar()
     const dragbar = document.getElementById("dragbar");
 
 	const toggleChildren = (elem) => {
-		//TODO: make arrow on side to show if toggled
 		const items = elem.target.parentNode.childNodes;
-		console.log(items);
 
+		const alreadyHidden = elem.target.parentNode.lastChild.style.display === 'none';
 		items.forEach(child => {
-			if (child.nodeName !== 'P') { //dont wanna remove label
-				if (child.style.display === 'none') {
+			if (child.nodeName === 'P') {
+				// rotate triangle
+				const triangle = child.lastChild;
+				if (alreadyHidden) {
+					triangle.style.transform = 'rotate(0deg)';
+				} else {
+					triangle.style.transform = 'rotate(90deg)';
+				}
+			} else {
+				if (alreadyHidden) {
 					// flex is initial display style
 					child.style.display = 'flex';
 				} else {
@@ -69,8 +76,13 @@ function buildDragbar()
 		label.innerHTML = name;
 		label.classList.add('dropLabel');
 		label.addEventListener('click', toggleChildren, bar);
-	
 		bar.appendChild(label);
+
+		//create triangle to show if open or closed
+		const tri = document.createElement('img');
+		tri.setAttribute('src', './images/triangle.png');
+		label.appendChild(tri);
+	
 		dragbar.appendChild(bar);
 		return bar;
 	};
@@ -80,7 +92,7 @@ function buildDragbar()
 	const gates = [
 		{"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
 		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Y", "symbol": "Y", "description": "desc", "matrix": "mat", "gate": undefined}
+		{"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined}
 	];
 
 	// in future will be populated with more than just gates
@@ -107,16 +119,21 @@ function buildDragbar()
 			const symbol = document.createElement('p');
 			symbol.classList.add('gateSymbol');
 			symbol.innerHTML = gate.symbol;
+			body.appendChild(symbol);
 			const name = document.createElement('p');
 			name.classList.add('gateName');
 			name.innerHTML = gate.name;
+			body.appendChild(name);
 	
-			//TODO: add mouseover evt listener for description and matrix
+			const ttc = document.createElement('div');
+			ttc.classList.add('ttc');
+			const desc = document.createElement('p');
+			desc.classList.add('tooltip');
+			desc.innerHTML = gate.description.replace('\n', '<br />'); 
+			ttc.appendChild(desc);
+			body.appendChild(ttc);
 	
 			//TODO: make gate draggable to canvas
-	
-			body.appendChild(symbol);
-			body.appendChild(name);
 	
 			bar.appendChild(body);
 		});

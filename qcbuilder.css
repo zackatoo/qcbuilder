@@ -85,13 +85,21 @@
 	align-content: flex-start;
 }
 
+.dropLabel img {
+	height: 16px;
+	width: 16px;
+}
+
 .dropLabel {
 	margin: 0px;
-	padding: 2px;
+	padding: 5px;
 	width: 100%;
 	color: white;
 	font-weight: bold;
 	background-color: lightgrey;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .dragBody {
@@ -109,6 +117,32 @@
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
+}
+
+.tooltip {
+	visibility: hidden;
+	background-color: black;
+	color: #ffffff;
+	padding: 5px;
+	text-align: center;
+	max-width: 200px;
+	min-width: 100px;
+
+	position: relative;
+	z-index: 1;
+	margin: 0px 0px 0px 25px;
+	padding-right: 5px;
+	transition: 0s visibility;
+}
+
+.ttc {
+	width: 0px;
+	visibility: hidden;
+}
+
+.dragBody:hover .ttc .tooltip {
+	visibility: visible;
+	transition-delay: 1s;
 }
 
 .gateSymbol {
