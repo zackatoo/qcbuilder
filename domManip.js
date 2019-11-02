@@ -159,6 +159,7 @@ function buildCanvas()
     var ctx = canvas.getContext("2d");
     allCanvasElements[id] = canvas;
     allContexts[id] = ctx;
+    allCanvasWraps[id] = canvasWrap;
 
     canvi.append(canvasWrap);
     canvasWrap.append(canvas);
@@ -201,9 +202,10 @@ function updateCurrentCircuit()
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
 }
 
-function buildInitStateSelector(lineIndex)
+function buildInitStateSelector(lineIndex, hitbox)
 {
     // TODO. Issue #5.
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE, 6, allCanvasWraps[activeCanvas]);
 }
 
 function unsupported()
