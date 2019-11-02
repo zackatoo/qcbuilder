@@ -73,7 +73,7 @@ class QuantumLine
 
         initHitbox.setOnClick( () => 
         {
-            buildInitStateSelector(index);
+            buildInitStateSelector(index, initHitbox);
         });
 
         initHitbox.div.style.cursor = "pointer";
@@ -222,3 +222,4 @@ class Complex
         return new Complex(-this.real, -this.imag);
     }
 }
+ 

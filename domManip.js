@@ -97,9 +97,10 @@ function updateCurrentCircuit()
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
 }
 
-function buildInitStateSelector(lineIndex)
+function buildInitStateSelector(lineIndex, hitbox)
 {
     // TODO. Issue #5.
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE, 6);
 }
 
 function unsupported()

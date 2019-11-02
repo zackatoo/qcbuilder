@@ -24,7 +24,7 @@ class Hitbox
         this.height = height;
 
         this.div = document.createElement("div");
-        var style = this.div.style;
+        let style = this.div.style;
         style.position = "absolute";
         style.width = width + "px";
         style.height = height + "px";
@@ -57,5 +57,25 @@ class Hitbox
     getMidPosition()
     {
         return {x: this.midX, y: this.midY};
+    }
+}
+
+class PieSelector
+{
+    constructor(x, y, radius, numSlices)
+    {
+        this.x = x; // Coordniates of middle of the circle
+        this.y = y;
+        this.radius = radius;
+        this.numSlices = numSlices;
+
+        let selector = document.createElement("div");
+        selector.position = "absolute";
+        selector.style.left = (x - radius) + "px";
+        selector.style.top = (y - radius) + "px";
+        selector.style.width = (radius * 2) + "px";
+        selector.style.height = (radius * 2) + "px";
+
+        
     }
 }
