@@ -75,6 +75,7 @@ function buildDragbar()
 		const label = document.createElement('p');
 		label.innerHTML = name;
 		label.classList.add('dropLabel');
+		label.style.setProperty('cursor', 'pointer');
 		label.addEventListener('click', toggleChildren, bar);
 		bar.appendChild(label);
 
@@ -114,6 +115,7 @@ function buildDragbar()
 		// add gates to div
 		dropdown.items.forEach(gate => {
 			const body = document.createElement('div');
+			body.style.setProperty('cursor', 'pointer');
 			body.classList.add('dragBody');
 			
 			const symbol = document.createElement('p');
