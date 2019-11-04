@@ -33,34 +33,64 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
 {
     // This draws a circular pie selector around a center hitbox (without drawing overtop of the hitbox)
     // The pie selector should completely encapsulate the hitbox
-    // The hitbox may be of any width & height and the pie selector may have any number of slices 
+    // The hitbox may be of any width & height and the pie selector may have any number of slices >= 3
 
     context.beginPath();
     context.arc(pieSelector.x, pieSelector.y, pieSelector.radius, 0, Math.PI * 2, false);
+    context.lineWidth = 2;
     context.stroke();
+    context.lineWidth = 1;
 
     // Phi is the angle from zero to the next corner of the center hitbox
     let phi = -Math.atan(centerHitbox.height / 2 / (centerHitbox.width / 2));
     let incr = 2 * Math.PI / pieSelector.numSlices;
+    let hypot = pieSelector.radius / Math.cos(incr / 2);
     let theta = 0;
+
+    function getX(i, theta)
+    {
+        return (i % 2) ? pieSelector.x + centerHitbox.height / 2 * Math.tan(i * Math.PI / 2 + theta * (i - 2))
+                       : pieSelector.x - centerHitbox.width / 2 * (i % 4 - 1);
+    }
+
+    function getY(i, theta)
+    {
+        return (i % 2) ? pieSelector.y - centerHitbox.height / 2 * (i - 2)
+                       : pieSelector.y + centerHitbox.width / 2 * Math.tan(-theta * (i % 4 - 1));
+    }
 
     // This outer loop runs 5 times, one for each side of the center hitbox and then one last time to come back to zero
     for (let i = 0; i < 5; i++)
     {
-        phi = i * Math.PI - phi;
-        while (theta < phi)
+        phi = i == 4 ? 2 * Math.PI : i * Math.PI - phi;
+        // Necessary error must be added in here because of how floating point computation rounds
+        // Unless it is drawing a pie selector with a hundred slices this error won't impact the drawing
+        while (theta + 0.0000001 < phi)
         {
+            console.log(theta, phi);
+            // TODO: fill in the slices
             context.beginPath();
-            let x = (i % 2) ? pieSelector.x + centerHitbox.height / 2 * Math.tan(i * Math.PI / 2 + theta * (i - 2))
-                            : pieSelector.x - centerHitbox.width / 2 * (i % 4 - 1);
-            let y = (i % 2) ? pieSelector.y - centerHitbox.height / 2 * (i - 2)
-                            : pieSelector.y + centerHitbox.width / 2 * Math.tan(-theta * (i % 4 - 1));
-            context.moveTo(x, y);
+            context.moveTo(getX(i, theta), getY(i, theta));
+            if (theta + incr > phi)
+            {
+                context.lineTo(getX(i, phi), getY(i, phi));
+                context.lineTo(getX(i + 1, theta + incr), getY(i + 1, theta + incr));
+            }
+            else
+            {
+                context.lineTo(getX(i, theta + incr), getY(i, theta + incr));
+            }
+            context.lineTo(pieSelector.radius * Math.cos(theta + incr) + pieSelector.x, pieSelector.radius * Math.sin(theta + incr) + pieSelector.y);
+            context.arcTo(hypot * Math.cos(theta + incr / 2) + pieSelector.x, hypot * Math.sin(theta + incr / 2) + pieSelector.y, pieSelector.radius * Math.cos(theta) + pieSelector.x, pieSelector.radius * Math.sin(theta) + pieSelector.y, pieSelector.radius);
+            context.lineTo(getX(i, theta), getY(i, theta));
+            context.fillStyle = "#eeeeee";
+            context.fill();
+
+            // Draw the outline
+            context.beginPath();
+            context.moveTo(getX(i, theta), getY(i, theta));
             context.lineTo(pieSelector.radius * Math.cos(theta) + pieSelector.x, pieSelector.radius * Math.sin(theta) + pieSelector.y);
             context.stroke();
-
-            // TODO: fill in the slices
-            //if (theta != 0)
 
             theta += incr;
         }
