@@ -2,7 +2,6 @@
 "use strict";
 
 const Render = getRender();
-//const QVM = getQVM();
 
 var allCanvasElements = [];
 var allCanvasWraps = [];
@@ -33,7 +32,112 @@ window.onload = function ()
 
 function buildDragbar()
 {
-    var dragbar = document.getElementById("dragbar");
+	// A gate is taken in as a JSON object
+	// It looks like:
+	// {
+	// 		"name": "Hadmard",
+	// 		"symbol": "H",
+	//		"description:": "DESC_HERE",
+	//		"matrix": "Store matrix somehow if used (Image?)"
+	//		"gate": function/class that is the gate (used when dragging and spawning)
+	// }
+	
+    const dragbar = document.getElementById("dragbar");
+
+	const toggleChildren = (elem) => {
+		const items = elem.target.parentNode.childNodes;
+
+		const alreadyHidden = elem.target.parentNode.lastChild.style.display === 'none';
+		items.forEach(child => {
+			if (child.nodeName === 'P') {
+				// rotate triangle
+				const triangle = child.lastChild;
+				if (alreadyHidden) {
+					triangle.style.transform = 'rotate(0deg)';
+				} else {
+					triangle.style.transform = 'rotate(90deg)';
+				}
+			} else {
+				if (alreadyHidden) {
+					// flex is initial display style
+					child.style.display = 'flex';
+				} else {
+					child.style.display = 'none';
+				}
+			}
+		});
+	};
+
+	const addDropdown = (name) => {
+		const bar = document.createElement('div');
+		bar.classList.add('dropdown');
+
+		const label = document.createElement('p');
+		label.innerHTML = name;
+		label.classList.add('dropLabel');
+		label.addEventListener('click', toggleChildren, bar);
+		bar.appendChild(label);
+
+		//create triangle to show if open or closed
+		const tri = document.createElement('img');
+		tri.setAttribute('src', './images/triangle.png');
+		label.appendChild(tri);
+	
+		dragbar.appendChild(bar);
+		return bar;
+	};
+
+	//const gates = (await (await fetch('localhost:9001/gates')).json()).gates; // just for now, need to set up on real server
+
+	const gates = [
+		{"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined}
+	];
+
+	// in future will be populated with more than just gates
+	// ex: measurements, transforms, part of c-not and others
+	const dropbaritems = [ //please come up with a better name
+		{
+			"name": "Gates",
+			"items": gates
+		},
+		{ 
+			"name": "Gates",
+			"items": gates
+		}
+	];
+
+	dropbaritems.forEach(dropdown => {
+		const bar = addDropdown(dropdown.name);
+
+		// add gates to div
+		dropdown.items.forEach(gate => {
+			const body = document.createElement('div');
+			body.classList.add('dragBody');
+			
+			const symbol = document.createElement('p');
+			symbol.classList.add('gateSymbol');
+			symbol.innerHTML = gate.symbol;
+			body.appendChild(symbol);
+			const name = document.createElement('p');
+			name.classList.add('gateName');
+			name.innerHTML = gate.name;
+			body.appendChild(name);
+	
+			const ttc = document.createElement('div');
+			ttc.classList.add('ttc');
+			const desc = document.createElement('p');
+			desc.classList.add('tooltip');
+			desc.innerHTML = gate.description.replace('\n', '<br />'); 
+			ttc.appendChild(desc);
+			body.appendChild(ttc);
+	
+			//TODO: make gate draggable to canvas
+	
+			bar.appendChild(body);
+		});
+	});
 }
 
 function buildCanvas()
