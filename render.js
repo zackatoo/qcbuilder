@@ -5,6 +5,7 @@ function getRender()
 {
     return {
         drawGrid,
+        drawStateSelector,
         drawQuantumCircuit
     };
 }
@@ -26,6 +27,46 @@ function drawGrid(context, color, width, height, increment)
     }
     context.strokeStyle = color;
     context.stroke();
+}
+
+function drawStateSelector(context, pieSelector, selectedSector, labels, centerHitbox)
+{
+    // This draws a circular pie selector around a center hitbox (without drawing overtop of the hitbox)
+    // The pie selector should completely encapsulate the hitbox
+    // The hitbox may be of any width & height and the pie selector may have any number of slices 
+
+    context.beginPath();
+    context.arc(pieSelector.x, pieSelector.y, pieSelector.radius, 0, Math.PI * 2, false);
+    context.stroke();
+
+    // Phi is the angle from zero to the next corner of the center hitbox
+    let phi = -Math.atan(centerHitbox.height / 2 / (centerHitbox.width / 2));
+    let incr = 2 * Math.PI / pieSelector.numSlices;
+    let theta = 0;
+
+    // This outer loop runs 5 times, one for each side of the center hitbox and then one last time to come back to zero
+    for (let i = 0; i < 5; i++)
+    {
+        phi = i * Math.PI - phi;
+        while (theta < phi)
+        {
+            context.beginPath();
+            let x = (i % 2) ? pieSelector.x + centerHitbox.height / 2 * Math.tan(i * Math.PI / 2 + theta * (i - 2))
+                            : pieSelector.x - centerHitbox.width / 2 * (i % 4 - 1);
+            let y = (i % 2) ? pieSelector.y - centerHitbox.height / 2 * (i - 2)
+                            : pieSelector.y + centerHitbox.width / 2 * Math.tan(-theta * (i % 4 - 1));
+            context.moveTo(x, y);
+            context.lineTo(pieSelector.radius * Math.cos(theta) + pieSelector.x, pieSelector.radius * Math.sin(theta) + pieSelector.y);
+            context.stroke();
+
+            // TODO: fill in the slices
+            //if (theta != 0)
+
+            theta += incr;
+        }
+    }
+
+    context.strokeRect(centerHitbox.cornerX, centerHitbox.cornerY, centerHitbox.width, centerHitbox.height);
 }
 
 function drawQuantumCircuit(context, circuit)

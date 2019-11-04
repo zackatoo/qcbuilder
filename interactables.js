@@ -30,6 +30,7 @@ class Hitbox
         style.height = height + "px";
         style.left = this.cornerX + "px";
         style.top = this.cornerY + "px";
+        style.zIndex = 10;
 
         parent.append(this.div); // The dom element 
     }
@@ -49,6 +50,11 @@ class Hitbox
         this.div.onclick = onClick;
     }
 
+    setZIndex(zIndex)
+    {
+        this.div.style.zIndex = zIndex;
+    }
+
     getCornerPosition()
     {
         return {x: this.cornerX, y: this.cornerY};
@@ -63,7 +69,8 @@ class Hitbox
 class PieSelector
 {
     // Adapted from https://stackoverflow.com/questions/11487557/how-can-i-make-a-circular-sector-using-css
-    constructor(x, y, radius, numSlices, parent)
+    // The onhover and onclick events 
+    constructor(x, y, radius, numSlices, parent, onEnter, onLeave, onClick)
     {
         this.x = x; // Coordniates of middle of the circle
         this.y = y;
@@ -96,9 +103,19 @@ class PieSelector
             applyStyle(slice);
             slice.style.paddingLeft = "1px";
             slice.style.zIndex = i + 1;
-        
-            slice.style.backgroundColor = "#00ff00";
 
+            slice.onmouseenter = onEnter;
+            slice.onmouseleave = onLeave;
+            slice.onclick = onClick;
+            /*
+            slice.style.backgroundColor = "#00ff00";
+            slice.onmouseenter = () => {
+                slice.style.backgroundColor = "#ff0000";
+            };
+            slice.onmouseleave = () => {
+                slice.style.backgroundColor = "#00ff00";
+            };
+            */
             let angle = (i != numSlices - 1) ? (i + 1) * 360 / numSlices : -360 / numSlices / 2;
             slice.style.transform = "rotate(" + angle + "deg)";
 

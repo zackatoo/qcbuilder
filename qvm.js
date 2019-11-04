@@ -24,17 +24,17 @@ class QuantumCircuit
         }
     }
 
-    setInitalQubit(index, stateString)
+    setInitalQubit(lineIndex, stateIndex)
     {
-        switch(stateString)
+        // TODO: Doesn't update the quantum gate/line yet
+        switch(stateIndex)
         {
-            case "0":  this.initalRegister.setQubit(index, [1, 0, 0, 0]); break;
-            case "1":  this.initalRegister.setQubit(index, [0, 0, 1, 0]); break;
-            case "+":  this.initalRegister.setQubit(index, [rat, 0, rat, 0]); break;
-            case "-":  this.initalRegister.setQubit(index, [rat, 0, -rat, 0]); break;
-            case "i":  this.initalRegister.setQubit(index, [rat, 0, 0, rat]); break;
-            case "-i": this.initalRegister.setQubit(index, [rat, 0, 0, -rat]); break;
-            default: console.log("Error (setInitalQubit) stateString does not match cases.");
+            case 0: this.initalRegister.setQubit(stateIndex, [1, 0, 0, 0]); break;
+            case 1: this.initalRegister.setQubit(stateIndex, [rat, 0, -rat, 0]); break;
+            case 2: this.initalRegister.setQubit(stateIndex, [rat, 0, 0, rat]); break;
+            case 3: this.initalRegister.setQubit(stateIndex, [0, 0, 1, 0]); break;
+            case 4: this.initalRegister.setQubit(stateIndex, [rat, 0, rat, 0]); break;
+            case 5: this.initalRegister.setQubit(stateIndex, [rat, 0, 0, -rat]); break;
         }
     }
 }
@@ -55,24 +55,34 @@ class QuantumLine
     	this.gates = []; // list of all gates in the line, undefined is a 'blank gate'
         this.index = index; // index is the location of the line in the circuit
         this.canvasWrap = canvasWrap;
+        this.canHover = true;
 
         var initHitbox = new Hitbox(GATE_SPACE, GATE_SPACE * (index + 1), PACKAGE_SIZE, PACKAGE_SIZE, canvasWrap, true);
         this.gates[0] = new QuantumGate(0, GATES.init, "|" + initalQubitName + "⟩", new Qubit([1, 0, 0, 0]), 0, initHitbox);
 
         initHitbox.setOnMouseEnter( () =>
         {
-            this.gates[0].setTransparency(0.4);
-            updateCurrentCircuit();
+            if (this.canHover)
+            {
+                this.gates[0].setTransparency(0.4);
+                updateCurrentCircuit();
+            }
         });
 
         initHitbox.setOnMouseLeave( () =>
         {
-            this.gates[0].setTransparency(1);
-            updateCurrentCircuit();
+            if (this.canHover)
+            {
+                this.gates[0].setTransparency(1);
+                updateCurrentCircuit();
+            }
         });
 
         initHitbox.setOnClick( () => 
         {
+            this.canHover = false;
+            this.gates[0].setTransparency(1);
+            updateCurrentCircuit();
             buildInitStateSelector(index, initHitbox);
         });
 

@@ -100,8 +100,25 @@ function updateCurrentCircuit()
 
 function buildInitStateSelector(lineIndex, hitbox)
 {
-    // TODO. Issue #5.
-    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE, 6, allCanvasWraps[activeCanvas]);
+    // TODO: doesn't survive a window resize
+    let ctx = allContexts[activeCanvas];
+    let labels = ["|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩", "|-i⟩"];
+
+    let onEnter = (index) => {
+        updateCurrentCircuit()
+        Render.drawStateSelector(ctx, pieSelector, index, labels, hitbox);
+    };
+    let onLeave = (index) => {
+        updateCurrentCircuit()
+        Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
+    };
+    let onClick = (index) => {
+        allCircuits[activeCanvas].setInitalQubit(lineIndex, index);
+        updateCurrentCircuit();
+    };
+
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, 6, allCanvasWraps[activeCanvas], onEnter, onLeave, onClick);
+    Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
 }
 
 function unsupported()
