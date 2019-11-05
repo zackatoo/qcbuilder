@@ -206,7 +206,7 @@ function buildInitStateSelector(lineIndex, hitbox)
 {
     // TODO: doesn't survive a window resize
     let ctx = allContexts[activeCanvas];
-    let labels = ["|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩", "|-i⟩"];
+    let labels = ["|-i⟩", "|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩"];
 
     let onEnter = (index) => {
         updateCurrentCircuit()
