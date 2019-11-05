@@ -41,36 +41,40 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
     context.stroke();
     context.lineWidth = 1;
 
-    // Phi is the angle from zero to the next corner of the center hitbox
-    let phi = -Math.atan(centerHitbox.height / 2 / (centerHitbox.width / 2));
+    // Psi is the angle to the next corner of the center hitbox
+    let psi = -Math.atan(centerHitbox.height / 2 / (centerHitbox.width / 2));
     let incr = 2 * Math.PI / pieSelector.numSlices;
     let hypot = pieSelector.radius / Math.cos(incr / 2);
-    let theta = 0;
+
+    // Due to CSS context stacking messing with the zIndex, we need to start at -pi instead of zero
+    let theta = -Math.PI;
 
     function getX(i, theta)
     {
-        return (i % 2) ? pieSelector.x + centerHitbox.height / 2 * Math.tan(i * Math.PI / 2 + theta * (i - 2))
-                       : pieSelector.x - centerHitbox.width / 2 * (i % 4 - 1);
+        return (i % 2) ? pieSelector.x + centerHitbox.height / 2 * Math.tan(i * Math.PI / 2 - theta * (i - 2))
+                       : pieSelector.x + centerHitbox.width / 2 * (i % 4 - 1);
     }
 
     function getY(i, theta)
     {
-        return (i % 2) ? pieSelector.y - centerHitbox.height / 2 * (i - 2)
-                       : pieSelector.y + centerHitbox.width / 2 * Math.tan(-theta * (i % 4 - 1));
+        return (i % 2) ? pieSelector.y + centerHitbox.height / 2 * (i - 2)
+                       : pieSelector.y + centerHitbox.width / 2 * Math.tan(theta * (i % 4 - 1));
     }
 
     // This outer loop runs 5 times, one for each side of the center hitbox and then one last time to come back to zero
-    for (let i = 0; i < 5; i++)
+    for (let i = 0, sector = 0; i <= 4; i++)
     {
-        phi = i == 4 ? 2 * Math.PI : i * Math.PI - phi;
+        psi = i * Math.PI - psi;
+        let phi = psi - Math.PI;
         // Necessary error must be added in here because of how floating point computation rounds
-        // Unless it is drawing a pie selector with a hundred slices this error won't impact the drawing
-        while (theta + 0.0000001 < phi)
+        // Unless it is drawing a pie selector with over a hundred slices this error won't impact the drawing
+        while (sector != pieSelector.numSlices && theta < phi)
         {
-            console.log(theta, phi);
-            // TODO: fill in the slices
+            // Fill in the slices
             context.beginPath();
-            context.moveTo(getX(i, theta), getY(i, theta));
+            let x = getX(i, theta);
+            let y = getY(i, theta);
+            context.moveTo(x, y);
             if (theta + incr > phi)
             {
                 context.lineTo(getX(i, phi), getY(i, phi));
@@ -80,19 +84,31 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
             {
                 context.lineTo(getX(i, theta + incr), getY(i, theta + incr));
             }
+            let circleX = pieSelector.radius * Math.cos(theta) + pieSelector.x;
+            let circleY = pieSelector.radius * Math.sin(theta) + pieSelector.y;
+
             context.lineTo(pieSelector.radius * Math.cos(theta + incr) + pieSelector.x, pieSelector.radius * Math.sin(theta + incr) + pieSelector.y);
-            context.arcTo(hypot * Math.cos(theta + incr / 2) + pieSelector.x, hypot * Math.sin(theta + incr / 2) + pieSelector.y, pieSelector.radius * Math.cos(theta) + pieSelector.x, pieSelector.radius * Math.sin(theta) + pieSelector.y, pieSelector.radius);
-            context.lineTo(getX(i, theta), getY(i, theta));
-            context.fillStyle = "#eeeeee";
+            context.arcTo(hypot * Math.cos(theta + incr / 2) + pieSelector.x, hypot * Math.sin(theta + incr / 2) + pieSelector.y, circleX, circleY, pieSelector.radius);
+            context.lineTo(x, y);
+            if (selectedSector == (sector + pieSelector.numSlices - 1) % pieSelector.numSlices)
+            {
+                context.fillStyle = "rgba(206, 206, 206, 0.4)";
+            }
+            else
+            {
+                context.fillStyle = "#cecece";
+            }
+            
             context.fill();
 
             // Draw the outline
             context.beginPath();
-            context.moveTo(getX(i, theta), getY(i, theta));
-            context.lineTo(pieSelector.radius * Math.cos(theta) + pieSelector.x, pieSelector.radius * Math.sin(theta) + pieSelector.y);
+            context.moveTo(x, y);
+            context.lineTo(circleX, circleY);
             context.stroke();
 
             theta += incr;
+            sector++;
         }
     }
 
