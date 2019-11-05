@@ -88,7 +88,6 @@ class PieSelector
 
         let lastWrapper = document.createElement("div");
         let theta = 360 / numSlices;
-        //lastWrapper.style.transform = "rotate(" + (180 - theta) + "deg)";
         
 
         function applyStyle(element)
@@ -115,33 +114,11 @@ class PieSelector
             slice.onclick = () => {
                 onClick(i);
             };
-            /*
-            slice.style.backgroundColor = "#00ff00";
-            slice.onmouseenter = () => {
-                slice.style.backgroundColor = "#ff0000";
-            };
-            slice.onmouseleave = () => {
-                slice.style.backgroundColor = "#00ff00";
-            };
-            */
-           /*
-            let angle = (i != numSlices - 1) ? i * 360 / numSlices : -360 / numSlices / 2 - 180;
-            slice.style.transform = "rotate(" + ((angle + 180) % 360) + "deg)";
-
-            (i != numSlices - 1 ? selector : lastWrapper).append(slice);
-            */
            
             let angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
             slice.style.transform = "rotate(" + angle + "deg)";
 
             (i != numSlices - 1 ? selector : lastWrapper).append(slice);
-            
-           /*
-            let angle = (i != numSlices - 1) ? (180 + theta * i) % 360 : theta - 90;
-            slice.style.transform = "rotate(" + angle + "deg)";
-
-            (i != numSlices - 1 ? selector : lastWrapper).append(slice);
-            */
         }
         selector.append(lastWrapper);
         applyStyle(lastWrapper);
