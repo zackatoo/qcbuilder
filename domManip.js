@@ -221,7 +221,7 @@ function buildInitStateSelector(lineIndex, hitbox)
         updateCurrentCircuit();
     };
 
-    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, 6, allCanvasWraps[activeCanvas], onEnter, onLeave, onClick);
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, labels.length, allCanvasWraps[activeCanvas], onEnter, onLeave, onClick);
     Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
 }
 

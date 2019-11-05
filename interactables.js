@@ -75,7 +75,7 @@ class PieSelector
         this.x = x; // Coordniates of middle of the circle
         this.y = y;
         this.radius = radius;
-        this.numSlices = numSlices;
+        this.numSlices = numSlices; // Due to how this works the number of slices must be between [4, 8] inclusive
 
         let selector = document.createElement("div");
         selector.style.borderRadius = "50%";
@@ -87,6 +87,9 @@ class PieSelector
         selector.style.height = (radius * 2) + "px";
 
         let lastWrapper = document.createElement("div");
+        let theta = 360 / numSlices;
+        //lastWrapper.style.transform = "rotate(" + (180 - theta) + "deg)";
+        
 
         function applyStyle(element)
         {
@@ -101,12 +104,17 @@ class PieSelector
         {
             let slice = document.createElement("div");
             applyStyle(slice);
-            slice.style.paddingLeft = "1px";
             slice.style.zIndex = i + 1;
 
-            slice.onmouseenter = onEnter;
-            slice.onmouseleave = onLeave;
-            slice.onclick = onClick;
+            slice.onmouseenter = () => {
+                onEnter(i);
+            };
+            slice.onmouseleave = () => {
+                onLeave(i);
+            };
+            slice.onclick = () => {
+                onClick(i);
+            };
             /*
             slice.style.backgroundColor = "#00ff00";
             slice.onmouseenter = () => {
@@ -116,14 +124,27 @@ class PieSelector
                 slice.style.backgroundColor = "#00ff00";
             };
             */
-            let angle = (i != numSlices - 1) ? (i + 1) * 360 / numSlices : -360 / numSlices / 2;
+           /*
+            let angle = (i != numSlices - 1) ? i * 360 / numSlices : -360 / numSlices / 2 - 180;
+            slice.style.transform = "rotate(" + ((angle + 180) % 360) + "deg)";
+
+            (i != numSlices - 1 ? selector : lastWrapper).append(slice);
+            */
+           
+            let angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
             slice.style.transform = "rotate(" + angle + "deg)";
 
             (i != numSlices - 1 ? selector : lastWrapper).append(slice);
-        }
+            
+           /*
+            let angle = (i != numSlices - 1) ? (180 + theta * i) % 360 : theta - 90;
+            slice.style.transform = "rotate(" + angle + "deg)";
 
-        applyStyle(lastWrapper);
+            (i != numSlices - 1 ? selector : lastWrapper).append(slice);
+            */
+        }
         selector.append(lastWrapper);
+        applyStyle(lastWrapper);
         parent.append(selector);
     }
 }
