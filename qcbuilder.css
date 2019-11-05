@@ -32,6 +32,10 @@
     position: absolute;
     bottom: 0px;
     top: 38px;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
 }
 
 #tabbar {
@@ -43,18 +47,11 @@
     position: absolute;
 }
 
-.canvas {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-}
-
 #canvas-base {
     overflow: hidden;
 }
 
 #canvi {
-    /*background-color: lightblue;*/
     width: 83%;
     left: 17%;
     top: 67px;
@@ -67,6 +64,96 @@
     position: absolute;
     width: 100%;
     height: 100%;
+}
+
+.canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.canvaswrap {
+    width: 100%;
+    height: 100%;
+}
+
+.dropdown {
+	width: 100%;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+}
+
+.dropLabel img {
+	height: 16px;
+	width: 16px;
+}
+
+.dropLabel {
+	margin: 0px;
+	padding: 5px;
+	width: 100%;
+	color: white;
+	font-weight: bold;
+	background-color: lightgrey;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.dragBody {
+	padding: 5px;
+	margin: 5px;
+	background-color: #E7F7FD;
+	width: 40%;
+	height: 3em;
+
+	border-style: solid;
+	border-color: #086788;
+	border-width: 3px;
+	border-radius: 10px;
+
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+
+.tooltip {
+	visibility: hidden;
+	background-color: black;
+	color: #ffffff;
+	padding: 5px;
+	text-align: center;
+	max-width: 200px;
+	min-width: 100px;
+
+	position: relative;
+	z-index: 1;
+	margin: 0px 0px 0px 25px;
+	padding-right: 5px;
+	transition: 0s visibility;
+}
+
+.ttc {
+	width: 0px;
+	visibility: hidden;
+}
+
+.dragBody:hover .ttc .tooltip {
+	visibility: visible;
+	transition-delay: 1s;
+}
+
+.gateSymbol {
+	margin: 0px;
+	font-size: 32px;
+	font-weight: bold;
+}
+
+.gateName {
+	width: 50%;
+	text-align: center;
 }
 
 body {
