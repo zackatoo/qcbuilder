@@ -44,10 +44,16 @@ function buildDragbar()
 	
     const dragbar = document.getElementById("dragbar");
 
-	const toggleChildren = (elem) => {
-		const items = elem.target.parentNode.childNodes;
+	const toggleChildren = (elem) => { //if reusing func, add in targetclass as second param
+		// function is used from multiple levels, and I always want to target the same tag
+		let dropdown = elem.target.parentNode;
+		while (!dropdown.classList.contains('dropdown')) { // classList is a DOMtokenlist, not array
+			dropdown = dropdown.parentNode;
+		}
+		const items = dropdown.childNodes;
+		console.log(items);
 
-		const alreadyHidden = elem.target.parentNode.lastChild.style.display === 'none';
+		const alreadyHidden = dropdown.lastChild.style.display === 'none';
 		items.forEach(child => {
 			if (child.nodeName === 'P') {
 				// rotate triangle
@@ -75,7 +81,8 @@ function buildDragbar()
 		const label = document.createElement('p');
 		label.innerHTML = name;
 		label.classList.add('dropLabel');
-		label.addEventListener('click', toggleChildren, bar);
+		label.style.setProperty('cursor', 'pointer');
+		label.addEventListener('click', toggleChildren);
 		bar.appendChild(label);
 
 		//create triangle to show if open or closed
@@ -114,6 +121,7 @@ function buildDragbar()
 		// add gates to div
 		dropdown.items.forEach(gate => {
 			const body = document.createElement('div');
+			body.style.setProperty('cursor', 'pointer');
 			body.classList.add('dragBody');
 			
 			const symbol = document.createElement('p');
