@@ -99,13 +99,13 @@ function buildDragbar()
 	//const gates = (await (await fetch('localhost:9001/gates')).json()).gates; // just for now, need to set up on real server
 
 	const singleQubitGates = [
-        {"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
-        {"name": "Pauli-X", "symbol": "X", "description": "desc", "matrix": "mat", "gate": undefined},
-        {"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined}
+        {"name": "Hadamard", "symbol": "H", "description": "Simple superposition gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-X", "symbol": "X", "description": "NOT gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-Y", "symbol": "Y", "description": "NOT & Phase flip gate.", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Z", "symbol": "Z", "description": "Phase flip gate.", "matrix": "mat", "gate": undefined}
     ];
     const multiQubitGates = [
-        {"name": "CNot", "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+        {"name": "C-Not", "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
 		{"name": "SWAP", "symbol": "✖", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
     ];
 
@@ -127,18 +127,18 @@ function buildDragbar()
 
 		// add gates to div
 		dropdown.items.forEach(gate => {
-			const body = document.createElement('div');
-			body.style.setProperty('cursor', 'pointer');
-			body.classList.add('dragBody');
+			const dragBody = document.createElement('div');
+			dragBody.style.setProperty('cursor', 'pointer');
+			dragBody.classList.add('dragBody');
 			
 			const symbol = document.createElement('p');
 			symbol.classList.add('gateSymbol');
 			symbol.innerHTML = gate.symbol;
-			body.appendChild(symbol);
+			dragBody.appendChild(symbol);
 			const name = document.createElement('p');
 			name.classList.add('gateName');
 			name.innerHTML = gate.name;
-			body.appendChild(name);
+			dragBody.appendChild(name);
 	
 			const ttc = document.createElement('div');
 			ttc.classList.add('ttc');
@@ -146,11 +146,37 @@ function buildDragbar()
 			desc.classList.add('tooltip');
 			desc.innerHTML = gate.description.replace('\n', '<br />'); 
 			ttc.appendChild(desc);
-			body.appendChild(ttc);
+			dragBody.appendChild(ttc);
 	
-			//TODO: make gate draggable to canvas
+            //TODO: make gate draggable to canvas
+            dragBody.onmousedown = (event) => {
+                let dragGate = document.createElement('div');
+                dragGate.style.width = PACKAGE_SIZE + "px";
+                dragGate.style.height = PACKAGE_SIZE + "px";
+                dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
+                dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
+                let symbolClone = symbol.cloneNode(true);
+                symbolClone.style.fontWeight = "normal";
+                symbolClone.style.marginTop = (PACKAGE_SIZE / 10) + "px";
+                dragGate.appendChild(symbolClone);
+                dragGate.classList.add('dragGate');
+
+                let mouseMove = (event) => {
+                    dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
+                    dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
+                };
+                let mouseUp = () => {
+                    body.removeEventListener('mousemove', mouseMove);
+                    body.removeEventListener('mouseup', mouseUp);
+                    body.removeChild(dragGate);
+                }
+
+                body.addEventListener('mousemove', mouseMove);
+                body.addEventListener('mouseup', mouseUp);
+                body.append(dragGate);
+            };
 	
-			bar.appendChild(body);
+			bar.appendChild(dragBody);
 		});
 	});
 }

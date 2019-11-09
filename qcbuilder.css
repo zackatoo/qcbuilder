@@ -168,6 +168,14 @@
     user-select: none;
 }
 
+.dragGate {
+    background-color: white;
+    border: 1px solid black;
+    position: absolute;
+    cursor: grabbing;
+    text-align: center;
+}
+
 body {
     margin: 0px;
     top: 0px;
