@@ -150,22 +150,22 @@ function buildDragbar()
 	
             //TODO: make gate draggable to canvas
             dragBody.onmousedown = (event) => {
-                let dragGate = document.createElement('div');
+                const dragGate = document.createElement('div');
                 dragGate.style.width = PACKAGE_SIZE + "px";
                 dragGate.style.height = PACKAGE_SIZE + "px";
                 dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
                 dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
-                let symbolClone = symbol.cloneNode(true);
+                const symbolClone = symbol.cloneNode(true);
                 symbolClone.style.fontWeight = "normal";
                 symbolClone.style.marginTop = (PACKAGE_SIZE / 10) + "px";
                 dragGate.appendChild(symbolClone);
                 dragGate.classList.add('dragGate');
 
-                let mouseMove = (event) => {
+                const mouseMove = (event) => {
                     dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
                     dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
                 };
-                let mouseUp = () => {
+                const mouseUp = () => {
                     body.removeEventListener('mousemove', mouseMove);
                     body.removeEventListener('mouseup', mouseUp);
                     body.removeChild(dragGate);
