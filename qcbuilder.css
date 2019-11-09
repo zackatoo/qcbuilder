@@ -107,6 +107,7 @@
 	margin: 5px;
 	background-color: #E7F7FD;
 	width: 40%;
+	min-width: 120px;
 	height: 3em;
 
 	border-style: solid;
