@@ -1,7 +1,7 @@
 // This files contains all of the quantum virtual machine simulation code
 "use strict";
 
-// When we make Render a module we need to import it here too
+// If we make Render a module we need to import it here too
 
 var rat = 1 / Math.sqrt(2);
 
@@ -11,12 +11,6 @@ class QuantumCircuit
     {
 		this.lines = [];
         this.width = width;
-        this.initalRegister = new QuReg(width);
-
-        for (let i = 0; i < width; i++)
-        {
-            this.setInitalQubit(i, "0");
-        }
 
         for (let i = 0; i < width; i++)
         {
@@ -26,15 +20,32 @@ class QuantumCircuit
 
     setInitalQubit(lineIndex, stateIndex)
     {
-        // TODO: Doesn't update the quantum gate/line yet
+        this.lines[lineIndex].setInitalQubit(this.createParameterArray(stateIndex), this.createQubitName(stateIndex));
+    }
+
+    createParameterArray(stateIndex)
+    {
         switch(stateIndex)
         {
-            case 0: this.initalRegister.setQubit(stateIndex, [1, 0, 0, 0]); break;
-            case 1: this.initalRegister.setQubit(stateIndex, [rat, 0, -rat, 0]); break;
-            case 2: this.initalRegister.setQubit(stateIndex, [rat, 0, 0, rat]); break;
-            case 3: this.initalRegister.setQubit(stateIndex, [0, 0, 1, 0]); break;
-            case 4: this.initalRegister.setQubit(stateIndex, [rat, 0, rat, 0]); break;
-            case 5: this.initalRegister.setQubit(stateIndex, [rat, 0, 0, -rat]); break;
+            case 0: return [1, 0, 0, 0];        // |0⟩
+            case 1: return [rat, 0, -rat, 0];   // |-⟩
+            case 2: return [rat, 0, 0, rat];    // |i⟩
+            case 3: return [0, 0, 1, 0];        // |1⟩
+            case 4: return [rat, 0, rat, 0];    // |+⟩
+            case 5: return [rat, 0, 0, -rat];   // |-i⟩
+        }
+    }
+
+    createQubitName(stateIndex)
+    {
+        switch(stateIndex)
+        {
+            case 0: return "|0⟩";
+            case 1: return "|-⟩";
+            case 2: return "|i⟩";
+            case 3: return "|1⟩";
+            case 4: return "|+⟩";
+            case 5: return "|-i⟩";
         }
     }
 }
@@ -83,10 +94,16 @@ class QuantumLine
             this.canHover = false;
             this.gates[0].setTransparency(1);
             updateCurrentCircuit();
-            buildInitStateSelector(index, initHitbox);
+            buildInitStateSelector(index, initHitbox, () => {this.canHover = true;});
         });
 
         initHitbox.div.style.cursor = "pointer";
+    }
+
+    setInitalQubit(parameterArray, name)
+    {
+        this.gates[0].setQubit(parameterArray);
+        this.gates[0].name = name;
     }
 }
 
@@ -100,10 +117,17 @@ class QuantumGate
         this.probability = probability;
         this.hitbox = hitbox;
 
-        this.applyGate(inputQubit);
+        this.applyGate(inputQubit);  // this.qubit gets set in here
 
         this.transparency = 1;
         this.setColor();
+    }
+
+    setQubit(parameterArray)
+    {
+        this.qubit.setQubit(parameterArray);
+        this.setColor();
+        this.probability = this.qubit.getProbability();
     }
 
     setColor()
@@ -131,7 +155,7 @@ class QuantumGate
         let sinphi = this.qubit.beta.imag / denom;
         let cosphi = this.qubit.beta.real / denom;
 
-        this.color = rgbString(bound(-255 * sinphi), bound(255 * Math.abs(cosphi)), bound(255 * sinphi), this.transparency);  
+        this.color = rgbString(bound(-165 * sinphi) + 90, bound(165 * Math.abs(cosphi)) + 90, bound(255 * sinphi), this.transparency);  
     }
 
     setTransparency(newTransparency)
@@ -142,9 +166,9 @@ class QuantumGate
 
     applyGate(inputQubit)
     {
-        switch (this.gate)
+        switch (this.gate)  // This is the qubit state after the gate is applied to it
         {
-            case GATES.init: this.qubit = inputQubit; break; // This is the qubit state after the gate is applied to it
+            case GATES.init: this.qubit = inputQubit; break;
             case GATES.h: this.applyHGate(inputQubit); break;
         }
     }
@@ -156,25 +180,6 @@ class QuantumGate
         var bot = this.qubit.beta.multiplyWithReal(1 / rat);
         this.qubit.alpha = top.addWith(bot);
         this.qubit.beta = top.addWith(bot.neg());
-    }
-}
-
-class QuReg
-{
-
-    constructor(width)
-    {
-		this.qubits = []; // This quantum register class holds all the qubits that will be operated on
-
-        for (let i = 0; i < width; i++)
-        {
-            this.qubits[i] = new Qubit([1, 0, 0, 0]);
-        }
-    }
-
-    setQubit(index, state)
-    {
-        this.qubits[index].setQubit(state);
     }
 }
 
@@ -198,6 +203,11 @@ class Qubit
     clone()
     {
         return JSON.parse(JSON.stringify(this));
+    }
+
+    getProbability()
+    {
+        return 1 - Math.pow(this.alpha.real, 2);
     }
 }
 
@@ -230,6 +240,11 @@ class Complex
     neg()
     {
         return new Complex(-this.real, -this.imag);
+    }
+
+    getProbability()
+    {
+        return Math.abs();
     }
 }
  

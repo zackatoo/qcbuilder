@@ -3,6 +3,8 @@
 
 const Render = getRender();
 
+const STATE_LABELS = ["|-i⟩", "|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩"];
+
 var allCanvasElements = [];
 var allCanvasWraps = [];
 var allContexts = [];
@@ -161,6 +163,15 @@ function buildCanvas()
     allContexts[id] = ctx;
     allCanvasWraps[id] = canvasWrap;
 
+    canvas.onclick = () => {
+        if (activeStateSelector != undefined)
+        {
+            activeStateSelector.selector.deleteSelf();
+            activeStateSelector = undefined;
+            updateCurrentCircuit();
+        }
+    };
+
     canvi.append(canvasWrap);
     canvasWrap.append(canvas);
 
@@ -200,29 +211,47 @@ function updateCurrentCircuit()
     var ctx = allContexts[activeCanvas];
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+    if (activeStateSelector != undefined)
+    {
+        Render.drawStateSelector(ctx, activeStateSelector.selector, -1, STATE_LABELS, activeStateSelector.hbox);
+    }
 }
 
-function buildInitStateSelector(lineIndex, hitbox)
+var activeStateSelector;
+function buildInitStateSelector(lineIndex, hitbox, onDelete)
 {
+    if (activeStateSelector != undefined)
+    {
+        activeStateSelector.selector.deleteSelf();
+        activeStateSelector = undefined;
+        updateCurrentCircuit();
+    }
+
     // TODO: doesn't survive a window resize
     let ctx = allContexts[activeCanvas];
-    let labels = ["|-i⟩", "|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩"];
+    let wrap = allCanvasWraps[activeCanvas];
 
     let onEnter = (index) => {
-        updateCurrentCircuit()
-        Render.drawStateSelector(ctx, pieSelector, index, labels, hitbox);
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+        Render.drawStateSelector(ctx, pieSelector, index, STATE_LABELS, hitbox);
     };
-    let onLeave = (index) => {
-        updateCurrentCircuit()
-        Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
+    let onLeave = () => {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+        Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
     };
     let onClick = (index) => {
+        activeStateSelector = undefined;
         allCircuits[activeCanvas].setInitalQubit(lineIndex, index);
+        pieSelector.deleteSelf();
         updateCurrentCircuit();
     };
 
-    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, labels.length, allCanvasWraps[activeCanvas], onEnter, onLeave, onClick);
-    Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, STATE_LABELS.length, wrap, onEnter, onLeave, onClick);
+    pieSelector.setOnDelete(onDelete);
+    activeStateSelector = {selector: pieSelector, hbox: hitbox};
+    Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
 }
 
 function unsupported()

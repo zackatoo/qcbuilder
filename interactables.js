@@ -76,15 +76,16 @@ class PieSelector
         this.y = y;
         this.radius = radius;
         this.numSlices = numSlices; // Due to how this works the number of slices must be between [4, 8] inclusive
+        this.parent = parent;
 
-        let selector = document.createElement("div");
-        selector.style.borderRadius = "50%";
-        selector.style.overflow = "hidden";
-        selector.style.position = "absolute";
-        selector.style.left = (x - radius) + "px";
-        selector.style.top = (y - radius) + "px";
-        selector.style.width = (radius * 2) + "px";
-        selector.style.height = (radius * 2) + "px";
+        this.selector = document.createElement("div");
+        this.selector.style.borderRadius = "50%";
+        this.selector.style.overflow = "hidden";
+        this.selector.style.position = "absolute";
+        this.selector.style.left = (x - radius) + "px";
+        this.selector.style.top = (y - radius) + "px";
+        this.selector.style.width = (radius * 2) + "px";
+        this.selector.style.height = (radius * 2) + "px";
 
         let lastWrapper = document.createElement("div");
         let theta = 360 / numSlices;
@@ -118,10 +119,21 @@ class PieSelector
             let angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
             slice.style.transform = "rotate(" + angle + "deg)";
 
-            (i != numSlices - 1 ? selector : lastWrapper).append(slice);
+            (i != numSlices - 1 ? this.selector : lastWrapper).append(slice);
         }
-        selector.append(lastWrapper);
+        this.selector.append(lastWrapper);
         applyStyle(lastWrapper);
-        parent.append(selector);
+        parent.append(this.selector);
+    }
+
+    setOnDelete(onDelete)
+    {
+        this.onDelete = onDelete;
+    }
+
+    deleteSelf()
+    {
+        this.onDelete();
+        this.parent.removeChild(this.selector);
     }
 }
