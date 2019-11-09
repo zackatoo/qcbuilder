@@ -10,6 +10,8 @@ function getRender()
     };
 }
 
+var gateFontSize = 30;
+
 function drawGrid(context, color, width, height, increment)
 {
     // Grid draw from https://stackoverflow.com/questions/11735856/draw-grid-table-on-canvas-html5
@@ -178,7 +180,7 @@ function drawQuantumGate(context, gate)
     context.fillRect(corner.x, corner.y + hitbox.height * (1 - gate.probability), hitbox.width, hitbox.height * gate.probability);
     context.strokeRect(corner.x, corner.y, hitbox.width, hitbox.height);
 
-    context.font = "30px serif";
+    context.font = gateFontSize + "px serif";
     context.fillStyle = "rgba(0,0,0," + gate.transparency + ")";
     context.textAlign = "center";
     context.textBaseline = "middle";

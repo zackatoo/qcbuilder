@@ -62,7 +62,7 @@ class QuantumLine
 {
     constructor(index, initalQubitName, canvasWrap)
     {
-		this.length = 1; //TODO: do we need this?
+		this.length = 1;
     	this.gates = []; // list of all gates in the line, undefined is a 'blank gate'
         this.index = index; // index is the location of the line in the circuit
         this.canvasWrap = canvasWrap;

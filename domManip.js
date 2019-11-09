@@ -98,22 +98,27 @@ function buildDragbar()
 
 	//const gates = (await (await fetch('localhost:9001/gates')).json()).gates; // just for now, need to set up on real server
 
-	const gates = [
-		{"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined}
-	];
+	const singleQubitGates = [
+        {"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-X", "symbol": "X", "description": "desc", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined}
+    ];
+    const multiQubitGates = [
+        {"name": "CNot", "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+		{"name": "SWAP", "symbol": "✖", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+    ];
 
 	// in future will be populated with more than just gates
 	// ex: measurements, transforms, part of c-not and others
 	const dropbaritems = [ //please come up with a better name
 		{
-			"name": "Gates",
-			"items": gates
+			"name": "Single Qubit Gates",
+			"items": singleQubitGates
 		},
 		{ 
-			"name": "Gates",
-			"items": gates
+			"name": "Multi Qubit Gates",
+			"items": multiQubitGates
 		}
 	];
 
@@ -235,7 +240,6 @@ function buildInitStateSelector(lineIndex, hitbox, onDelete)
         updateCurrentCircuit();
     }
 
-    // TODO: doesn't survive a window resize
     let ctx = allContexts[activeCanvas];
     let wrap = allCanvasWraps[activeCanvas];
 
