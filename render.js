@@ -148,7 +148,7 @@ function drawQuantumLine(context, line)
             {
                 var thisHitbox = line.gates[i].hitbox;
                 lineStarts[lineIndex + 1] = thisHitbox.cornerX + thisHitbox.width;
-                lineEnds[i] = line.gates[i].hitbox.cornerX;
+                lineEnds[lineIndex] = line.gates[i].hitbox.cornerX;
                 lineIndex++;
             }
             drawQuantumGate(context, line.gates[i]);
@@ -166,7 +166,9 @@ function drawQuantumLine(context, line)
 
     context.moveTo(0.5 + lineStarts[i], 0.5 + hitbox.midY);
     context.lineTo(context.canvas.width, 0.5 + hitbox.midY);
+    context.lineWidth = 2;
     context.stroke();
+    context.lineWidth = 1;
 }
 
 function drawQuantumGate(context, gate)
