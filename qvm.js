@@ -21,6 +21,8 @@ class QuantumCircuit
 
     insertGate(lineIndex, gateIndex, gateId, gateName)
     {
+        if (lineIndex == QUBIT_MAX) return;
+
         if (lineIndex == this.width)
         {
             this.lines[lineIndex] = new QuantumLine(lineIndex, "0", this.canvasWrap);
@@ -139,7 +141,6 @@ class QuantumLine
         {
             // Insert the gate into the array without overwriting anything
             let newIndex = Math.floor(gateIndex / 2) + 1;
-            console.log(newIndex - 1);
             let previousQubit = this.getPreviousQubit(newIndex - 1);
             this.gates.splice(newIndex, 0, new QuantumGate(newIndex, gateId, gateName, previousQubit, this.createHitbox(newIndex)));
             this.length++;
