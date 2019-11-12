@@ -151,15 +151,7 @@ function buildDragbar()
 	
             dragBody.onmousedown = (event) => {
                 if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
-
-                //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
-                if (allCircuits[activeCanvas].width < QUBIT_MAX)
-                {
-                    tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
-                    tempQuantumLine.gates[0].setTransparency(0.4);
-                    Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
-                }
-                
+                createTempLine();
                 let draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
             };
 	
@@ -245,6 +237,17 @@ function updateCurrentCircuit()
     }
     if (tempQuantumLine != undefined)
     {
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
+}
+
+function createTempLine()
+{
+    //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
+    if (allCircuits[activeCanvas].width < QUBIT_MAX)
+    {
+        tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
+        tempQuantumLine.gates[0].setTransparency(0.4);
         Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
     }
 }

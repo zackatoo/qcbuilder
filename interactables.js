@@ -22,6 +22,10 @@ class Hitbox
 
         this.width = width;
         this.height = height;
+        this.canHover = true;
+        this.parent = parent;
+
+        if (parent == undefined) return;
 
         this.div = document.createElement("div");
         let style = this.div.style;
@@ -43,6 +47,16 @@ class Hitbox
     setOnMouseLeave(onMouseLeave)
     {
         this.div.onmouseleave = onMouseLeave;
+    }
+
+    setOnMouseDown(onMouseDown)
+    {
+        this.div.onmousedown = onMouseDown;
+    }
+
+    setOnMouseUp(onMouseUp)
+    {
+        this.div.onmouseup = onMouseUp;
     }
 
     setOnClick(onClick)
@@ -85,6 +99,11 @@ class Hitbox
     getMidPosition()
     {
         return {x: this.midX, y: this.midY};
+    }
+
+    deleteSelf()
+    {
+        this.parent.removeChild(this.div);
     }
 }
 
@@ -213,7 +232,7 @@ class DraggableGate
                 // Place the gate into the circuit where it belongs
                 let lineIndex = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) - 1;
                 let gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 2;
-                allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol);
+                allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol, symbol);
             }
 
             updateCurrentCircuit();
