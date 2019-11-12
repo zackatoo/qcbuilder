@@ -55,6 +55,28 @@ class Hitbox
         this.div.style.zIndex = zIndex;
     }
 
+    setCornerPosition(x, y)
+    {
+        this.cornerX = x;
+        this.cornerY = y;
+        this.midX = x + this.width / 2;
+        this.midY = y + this.height / 2;
+
+        this.div.style.left = this.cornerX + "px";
+        this.div.style.top = this.cornerY + "px";
+    }
+
+    setMiddlePosition(x, y)
+    {
+        this.cornerX = x - this.width / 2;
+        this.cornerY = y - this.height / 2;
+        this.midX = x;
+        this.midY = y;
+
+        this.div.style.left = this.cornerX + "px";
+        this.div.style.top = this.cornerY + "px";
+    }
+
     getCornerPosition()
     {
         return {x: this.cornerX, y: this.cornerY};

@@ -37,7 +37,8 @@ function buildDragbar()
 	// A gate is taken in as a JSON object
 	// It looks like:
 	// {
-	// 		"name": "Hadmard",
+    // 		"name": "Hadmard",
+    //      "id": 0,
 	// 		"symbol": "H",
 	//		"description:": "DESC_HERE",
 	//		"matrix": "Store matrix somehow if used (Image?)"
@@ -53,7 +54,6 @@ function buildDragbar()
 			dropdown = dropdown.parentNode;
 		}
 		const items = dropdown.childNodes;
-		console.log(items);
 
 		const alreadyHidden = dropdown.lastChild.style.display === 'none';
 		items.forEach(child => {
@@ -99,14 +99,14 @@ function buildDragbar()
 	//const gates = (await (await fetch('localhost:9001/gates')).json()).gates; // just for now, need to set up on real server
 
 	const singleQubitGates = [
-        {"name": "Hadamard", "symbol": "H", "description": "Simple superposition gate.", "matrix": "mat", "gate": undefined},
-        {"name": "Pauli-X", "symbol": "X", "description": "NOT gate.", "matrix": "mat", "gate": undefined},
-        {"name": "Pauli-Y", "symbol": "Y", "description": "NOT & Phase flip gate.", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Z", "symbol": "Z", "description": "Phase flip gate.", "matrix": "mat", "gate": undefined}
+        {"name": "Hadamard", "id": 1, "symbol": "H", "description": "Simple superposition gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-X", "id": 2, "symbol": "X", "description": "NOT gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-Y", "id": 3, "symbol": "Y", "description": "NOT & Phase flip gate.", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Z", "id": 4, "symbol": "Z", "description": "Phase flip gate.", "matrix": "mat", "gate": undefined}
     ];
     const multiQubitGates = [
-        {"name": "C-Not", "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
-		{"name": "SWAP", "symbol": "✖", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+        {"name": "C-Not", "id": 5, "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+		{"name": "SWAP", "id": 6, "symbol": "✖", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
     ];
 
 	// in future will be populated with more than just gates
@@ -151,6 +151,13 @@ function buildDragbar()
             //TODO: make gate draggable to canvas
             dragBody.onmousedown = (event) => {
                 const dragGate = document.createElement('div');
+                if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
+
+                //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
+                tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
+                tempQuantumLine.gates[0].setTransparency(0.4);
+                Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+
                 dragGate.style.width = PACKAGE_SIZE + "px";
                 dragGate.style.height = PACKAGE_SIZE + "px";
                 dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
@@ -162,13 +169,47 @@ function buildDragbar()
                 dragGate.classList.add('dragGate');
 
                 const mouseMove = (event) => {
-                    dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
-                    dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
+                    const canviBounds = document.getElementById("canvi").getBoundingClientRect();
+                    const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
+
+                    if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
+                     && event.clientY > canviBounds.top + PACKAGE_SIZE 
+                     && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
+                    {
+                        // 'Sticky' dragging tries to snap the gate into a position on the circuit
+                        const diffX = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) * PACKAGE_SIZE;
+                        const diffY = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) * PACKAGE_SIZE * 2;
+                        dragGate.style.left = (diffX + canviBounds.left - PACKAGE_SIZE / 2) + "px";
+                        dragGate.style.top = (diffY + canviBounds.top - PACKAGE_SIZE / 2) + "px";
+                    }
+                    else
+                    {
+                        // Allow smooth dragging when outside the circuit
+                        dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
+                        dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
+                    }
                 };
-                const mouseUp = () => {
+                const mouseUp = (event) => {
+                    const canviBounds = document.getElementById("canvi").getBoundingClientRect();
+                    const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
+
                     body.removeEventListener('mousemove', mouseMove);
                     body.removeEventListener('mouseup', mouseUp);
                     body.removeChild(dragGate);
+
+                    tempQuantumLine = undefined;
+
+                    if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
+                        && event.clientY > canviBounds.top + PACKAGE_SIZE 
+                        && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
+                    {
+                        // Place the gate into the circuit where it belongs
+                        const lineIndex = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) - 1;
+                        const gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 2;
+                        allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol);
+                    }
+
+                    updateCurrentCircuit();
                 }
 
                 body.addEventListener('mousemove', mouseMove);
@@ -245,6 +286,8 @@ function resizeBaseCanvas()
     Render.drawGrid(ctx, "#bababa", baseCanvas.width, baseCanvas.height, PACKAGE_SIZE);
 }
 
+var activeStateSelector;
+var tempQuantumLine;
 function updateCurrentCircuit()
 {
     var ctx = allContexts[activeCanvas];
@@ -254,9 +297,12 @@ function updateCurrentCircuit()
     {
         Render.drawStateSelector(ctx, activeStateSelector.selector, -1, STATE_LABELS, activeStateSelector.hbox);
     }
+    if (tempQuantumLine != undefined)
+    {
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
 }
 
-var activeStateSelector;
 function buildInitStateSelector(lineIndex, hitbox, onDelete)
 {
     if (activeStateSelector != undefined)
