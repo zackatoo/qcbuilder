@@ -149,7 +149,7 @@ class QuantumLine
             return;
         }
 
-        let initHitbox = new Hitbox(GATE_SPACE, GATE_SPACE * (index + 1), PACKAGE_SIZE, PACKAGE_SIZE, canvasWrap, true);
+        const initHitbox = new Hitbox(GATE_SPACE, GATE_SPACE * (index + 1), PACKAGE_SIZE, PACKAGE_SIZE, canvasWrap, true);
         this.gates[0] = new QuantumGate(0, GATES.init, "|" + initalQubitName + "⟩", new Qubit([1, 0, 0, 0]), initHitbox);
 
         initHitbox.setOnMouseEnter( () =>
@@ -190,7 +190,7 @@ class QuantumLine
         if (gateIndex >= maxLength * 2 - 1)
         {
             // Append this gate to the end of the line
-            let previousQubit = this.getPreviousQubit(maxLength);
+            const previousQubit = this.getPreviousQubit(maxLength);
             this.gates[maxLength] = new QuantumGate(maxLength, gateId, gateName, previousQubit, undefined);
             this.gates[maxLength].setHitbox(this.createHitbox(this.gates[maxLength], gateId, gateName, symbol));
             this.length = maxLength + 1;
@@ -206,8 +206,8 @@ class QuantumLine
                 newIndex--;
                 written = true;
             }
-            let previousQubit = this.getPreviousQubit(newIndex - 1);
-            let newGate = new QuantumGate(newIndex, gateId, gateName, previousQubit, undefined);
+            const previousQubit = this.getPreviousQubit(newIndex - 1);
+            const newGate = new QuantumGate(newIndex, gateId, gateName, previousQubit, undefined);
             newGate.setHitbox(this.createHitbox(newGate, gateId, gateName, symbol));
             if (this.gates[newIndex] == undefined || written)
             {
@@ -244,7 +244,7 @@ class QuantumLine
             }
             else
             {
-                let previousQubit = this.getPreviousQubit(gateIndex);
+                const previousQubit = this.getPreviousQubit(gateIndex);
                 this.gates[gateIndex] = new QuantumGate(gateIndex, gateId, gateName, previousQubit, undefined);
                 this.gates[gateIndex].setHitbox(this.createHitbox(this.gates[gateIndex], gateId, gateName, symbol));
             }
@@ -313,7 +313,7 @@ class QuantumLine
 
     createHitbox(gate, gateId, gateName, symbol)
     {
-        let hitbox = new Hitbox(GATE_SPACE * (gate.index + 1), GATE_SPACE * (this.index + 1), PACKAGE_SIZE, PACKAGE_SIZE, this.canvasWrap, true);
+        const hitbox = new Hitbox(GATE_SPACE * (gate.index + 1), GATE_SPACE * (this.index + 1), PACKAGE_SIZE, PACKAGE_SIZE, this.canvasWrap, true);
         hitbox.setOnMouseEnter(() => {
             if (hitbox.canHover)
             {
@@ -331,9 +331,9 @@ class QuantumLine
         hitbox.setOnMouseDown( (event) => 
         {
             hitbox.canHover = false;
-            let sym = this.gates[gate.index].symbol == undefined ? symbol : this.gates[gate.index].symbol;
+            const sym = this.gates[gate.index].symbol == undefined ? symbol : this.gates[gate.index].symbol;
             createTempLine();
-            let draggableGate = new DraggableGate(event.clientX, event.clientY, document.getElementsByTagName("body")[0], {id: this.gates[gate.index].gate, symbol:this.gates[gate.index].name}, sym);
+            const draggableGate = new DraggableGate(event.clientX, event.clientY, document.getElementsByTagName("body")[0], {id: this.gates[gate.index].gate, symbol:this.gates[gate.index].name}, sym);
             this.gates[gate.index] = undefined;
 
             updateCurrentCircuit();
@@ -421,9 +421,9 @@ class QuantumGate
             return;
         }
 
-        let denom = Math.sqrt(1 - Math.pow(this.qubit.alpha.real, 2) - Math.pow(this.qubit.alpha.imag, 2));
-        let sinphi = this.qubit.beta.imag / denom;
-        let cosphi = this.qubit.beta.real / denom;
+        const denom = Math.sqrt(1 - Math.pow(this.qubit.alpha.real, 2) - Math.pow(this.qubit.alpha.imag, 2));
+        const sinphi = this.qubit.beta.imag / denom;
+        const cosphi = this.qubit.beta.real / denom;
 
         // TODO: The color representing the phase of the qubit is broken because of the fundemental assumption that alpha is always real
         // which was false. Alpha can be complex so we need to get phi from two complex numbers instead of one complex and one real.
@@ -467,7 +467,7 @@ class QuantumGate
 
     applyHGate(inputQubit)
     {
-        let parameterArray = [];
+        const parameterArray = [];
         parameterArray[0] = rat * (inputQubit.alpha.real + inputQubit.beta.real);
         parameterArray[1] = rat * (inputQubit.alpha.imag + inputQubit.beta.imag);
         parameterArray[2] = rat * (inputQubit.alpha.real - inputQubit.beta.real);
@@ -477,7 +477,7 @@ class QuantumGate
 
     applyXGate(inputQubit)
     {
-        let parameterArray = [];
+        const parameterArray = [];
         parameterArray[0] = inputQubit.beta.real;
         parameterArray[1] = inputQubit.beta.imag;
         parameterArray[2] = inputQubit.alpha.real;
@@ -487,7 +487,7 @@ class QuantumGate
 
     applyYGate(inputQubit)
     {
-        let parameterArray = [];
+        const parameterArray = [];
         parameterArray[0] = inputQubit.beta.imag;
         parameterArray[1] = -inputQubit.beta.real;
         parameterArray[2] = inputQubit.alpha.imag;
@@ -497,7 +497,7 @@ class QuantumGate
 
     applyZGate(inputQubit)
     {
-        let parameterArray = [];
+        const parameterArray = [];
         parameterArray[0] = inputQubit.alpha.real;
         parameterArray[1] = inputQubit.alpha.imag;
         parameterArray[2] = -inputQubit.beta.real;

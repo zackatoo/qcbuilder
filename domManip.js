@@ -152,7 +152,7 @@ function buildDragbar()
             dragBody.onmousedown = (event) => {
                 if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
                 createTempLine();
-                let draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
+                const draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
             };
 	
 			bar.appendChild(dragBody);
@@ -163,20 +163,20 @@ function buildDragbar()
 function buildCanvas()
 {
     // Builds a new canvas to build a circuit in, then insert into the document
-    var canvi = document.getElementById("canvi");
+    const canvi = document.getElementById("canvi");
 
     // Since we cannot place things directly into a canvas we need a wrapper to hold both the canvas 
     // and all of it's hitboxes
-    var canvasWrap = document.createElement("div");
+    const canvasWrap = document.createElement("div");
     canvasWrap.className = "canvaswrap";
 
-    var canvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas");
     if (!canvas.getContext) return unsupported();
 
-    var id = allCanvasElements.length;
+    const id = allCanvasElements.length;
     canvas.id = "canvas-" + id;
     canvas.className = "canvas";
-    var ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     allCanvasElements[id] = canvas;
     allContexts[id] = ctx;
     allCanvasWraps[id] = canvasWrap;
@@ -201,7 +201,7 @@ function buildCanvas()
 
 function resizeActiveCanvas()
 {
-    var canvas = allCanvasElements[activeCanvas];
+    const canvas = allCanvasElements[activeCanvas];
     canvas.width = canvi.offsetWidth;
     canvas.height = canvi.offsetHeight;
 
@@ -216,7 +216,7 @@ function buildBaseCanvas()
 
 function resizeBaseCanvas()
 {
-    var ctx = baseCanvas.getContext("2d");
+    const ctx = baseCanvas.getContext("2d");
     baseCanvas.width = canvi.offsetWidth;
     baseCanvas.height = canvi.offsetHeight;
 
@@ -228,7 +228,7 @@ var activeStateSelector;
 var tempQuantumLine;
 function updateCurrentCircuit()
 {
-    var ctx = allContexts[activeCanvas];
+    const ctx = allContexts[activeCanvas];
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
     if (activeStateSelector != undefined)
@@ -266,20 +266,20 @@ function buildInitStateSelector(lineIndex, hitbox, onDelete)
         updateCurrentCircuit();
     }
 
-    let ctx = allContexts[activeCanvas];
-    let wrap = allCanvasWraps[activeCanvas];
+    const ctx = allContexts[activeCanvas];
+    const wrap = allCanvasWraps[activeCanvas];
 
-    let onEnter = (index) => {
+    const onEnter = (index) => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
         Render.drawStateSelector(ctx, pieSelector, index, STATE_LABELS, hitbox);
     };
-    let onLeave = () => {
+    const onLeave = () => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
         Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
     };
-    let onClick = (index) => {
+    const onClick = (index) => {
         activeStateSelector = undefined;
         allCircuits[activeCanvas].setInitalQubit(lineIndex, index);
         pieSelector.deleteSelf();
@@ -296,7 +296,7 @@ function unsupported()
 {
     // User's browser is not up-to-date so we shut down the webapp.
     activeCanvas = -1;
-    var unsupportedDiv = document.createElement("div");
+    const unsupportedDiv = document.createElement("div");
     unsupportedDiv.id = "unsupported";
     unsupportedDiv.innerHTML = "Your browser does not support this website. Please update to a newer version.";
     body.append(unsupportedDiv);
