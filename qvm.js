@@ -23,7 +23,7 @@ class QuantumCircuit
     {
         if (lineIndex == this.width)
         {
-            this.lines[lineIndex] = new QuantumLine(i, "0", this.canvasWrap);
+            this.lines[lineIndex] = new QuantumLine(lineIndex, "0", this.canvasWrap);
             this.width++;
         }
 
@@ -74,13 +74,19 @@ const GATES = {
 
 class QuantumLine
 {
-    constructor(index, initalQubitName, canvasWrap)
+    constructor(index, initalQubitName, canvasWrap, fake)
     {
 		this.length = 1;
     	this.gates = []; // list of all gates in the line, undefined is a 'blank gate'
         this.index = index; // index is the location of the line in the circuit
         this.canvasWrap = canvasWrap;
         this.canHover = true;
+
+        // Use the optional fake parameter if you want to display a Quantum Line without actually interacting with it
+        if (fake != undefined && fake) 
+        {
+            this.gates[0] = new QuantumGate(0, GATES.init, "|" + initalQubitName + "⟩", new Qubit([1, 0, 0, 0]));
+        }
 
         let initHitbox = new Hitbox(GATE_SPACE, GATE_SPACE * (index + 1), PACKAGE_SIZE, PACKAGE_SIZE, canvasWrap, true);
         this.gates[0] = new QuantumGate(0, GATES.init, "|" + initalQubitName + "⟩", new Qubit([1, 0, 0, 0]), initHitbox);
@@ -116,27 +122,58 @@ class QuantumLine
 
     insertGate(gateIndex, gateId, gateName)
     {
-        if (gateIndex >= this.length)
+        // gateIndex tells where in the line to place the gate.
+        // If gateIndex is even it is overriding another gate
+        // If it is odd then it is inserting itself between two other gates.
+        
+        if (gateIndex >= this.length * 2 - 1)
         {
             // Append this gate to the end of the line
-            let previousQubit;
-            for (let i = this.length - 1; i >= 0; i--)
-            {
-                if (this.gates[i] != undefined)
-                {
-                    previousQubit = this.gates[i].qubit;
-                    break;
-                }
-            }
+            let previousQubit = this.getPreviousQubit(this.length);
 
             // TODO: spawn a hitbox for this new gate that is movable
             this.gates[this.length] = new QuantumGate(this.length, gateId, gateName, previousQubit, this.createHitbox(this.length));
             this.length++;
         }
+        else if (gateIndex % 2 == 1)
+        {
+            // Insert the gate into the array without overwriting anything
+            let newIndex = Math.floor(gateIndex / 2) + 1;
+            console.log(newIndex - 1);
+            let previousQubit = this.getPreviousQubit(newIndex - 1);
+            this.gates.splice(newIndex, 0, new QuantumGate(newIndex, gateId, gateName, previousQubit, this.createHitbox(newIndex)));
+            this.length++;
+            for (let i = newIndex + 1; i < this.length; i++)
+            {
+                if (this.gates[i] != undefined)
+                {
+                    this.gates[i].index++;
+                    this.gates[i].hitbox.setMiddlePosition(GATE_SPACE * (this.gates[i].index + 1), GATE_SPACE * (this.index + 1));
+                }
+            }
+            this.updateLine();
+        }
         else
         {
-            // TODO: insert the gate into the array
+            //Overwrite an existing gate
+            gateIndex /= 2;
+            this.gates[gateIndex].changeGate(gateId, gateName);
+            this.updateLine();
         }
+    }
+
+    getPreviousQubit(index)
+    {
+        let previousQubit;
+        for (let i = index; i >= 0; i--)
+        {
+            if (this.gates[i] != undefined)
+            {
+                previousQubit = this.gates[i].qubit;
+                break;
+            }
+        }
+        return previousQubit
     }
 
     createHitbox(gateIndex)
@@ -199,6 +236,8 @@ class QuantumGate
         {
             return Math.max(0, Math.ceil(x));
         }
+
+        this.probability = this.qubit.getProbability();
         
         // If the qubit is in the state |0> then just set the color to green (it won't be displayed anyways)
         // because we don't want the program to divide by zero
@@ -212,10 +251,12 @@ class QuantumGate
         let sinphi = this.qubit.beta.imag / denom;
         let cosphi = this.qubit.beta.real / denom;
 
-       // this.color = rgbString(bound(-165 * sinphi) + 90, bound(165 * Math.abs(cosphi)) + 90, bound(255 * sinphi), this.transparency);  
+        // TODO: The color representing the phase of the qubit is broken because of the fundemental assumption that alpha is always real
+        // which was false. Alpha can be complex so we need to get phi from two complex numbers instead of one complex and one real.
+
+        // this.color = rgbString(bound(-165 * sinphi) + 90, bound(165 * Math.abs(cosphi)) + 90, bound(255 * sinphi), this.transparency);  
         //this.color = rgbString(bound(-255 * sinphi), bound(255 * Math.abs(cosphi)), bound(255 * sinphi), this.transparency); 
         this.color = rgbString(0, 255, 0, this.transparency);
-        this.probability = this.qubit.getProbability();
     }
 
     setTransparency(newTransparency)
@@ -224,12 +265,22 @@ class QuantumGate
         this.setColor();
     }
 
+    changeGate(gate, name)
+    {
+        // Requires running an updateLine() in parent Quantum Line after this method is used
+        this.gate = gate;
+        this.name = name;
+    }
+
     applyGate(inputQubit)
     {
         switch (this.gate)  // This is the qubit state after the gate is applied to it
         {
             case GATES.init: this.qubit = inputQubit; break;
             case GATES.h: this.applyHGate(inputQubit); break;
+            case GATES.x: this.applyXGate(inputQubit); break;
+            case GATES.y: this.applyYGate(inputQubit); break;
+            case GATES.z: this.applyZGate(inputQubit); break;
         }
         this.setColor();
     }
@@ -241,6 +292,36 @@ class QuantumGate
         parameterArray[1] = rat * (inputQubit.alpha.imag + inputQubit.beta.imag);
         parameterArray[2] = rat * (inputQubit.alpha.real - inputQubit.beta.real);
         parameterArray[3] = rat * (inputQubit.alpha.imag - inputQubit.beta.imag);
+        this.qubit = new Qubit(parameterArray);
+    }
+
+    applyXGate(inputQubit)
+    {
+        let parameterArray = [];
+        parameterArray[0] = inputQubit.beta.real;
+        parameterArray[1] = inputQubit.beta.imag;
+        parameterArray[2] = inputQubit.alpha.real;
+        parameterArray[3] = inputQubit.alpha.imag;
+        this.qubit = new Qubit(parameterArray);
+    }
+
+    applyYGate(inputQubit)
+    {
+        let parameterArray = [];
+        parameterArray[0] = inputQubit.beta.imag;
+        parameterArray[1] = -inputQubit.beta.real;
+        parameterArray[2] = inputQubit.alpha.imag;
+        parameterArray[3] = -inputQubit.alpha.real;
+        this.qubit = new Qubit(parameterArray);
+    }
+
+    applyZGate(inputQubit)
+    {
+        let parameterArray = [];
+        parameterArray[0] = inputQubit.alpha.real;
+        parameterArray[1] = inputQubit.alpha.imag;
+        parameterArray[2] = -inputQubit.beta.real;
+        parameterArray[3] = -inputQubit.beta.imag;
         this.qubit = new Qubit(parameterArray);
     }
 }
@@ -270,6 +351,12 @@ class Qubit
     getProbability()
     {
         return Math.pow(this.beta.real, 2) + Math.pow(this.beta.imag, 2);
+    }
+
+    getParameterArray()
+    {
+        //TODO: for debug, remove in final release
+        return [this.alpha.real, this.alpha.imag, this.beta.real, this.beta.imag];
     }
 }
 

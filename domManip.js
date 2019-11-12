@@ -54,7 +54,6 @@ function buildDragbar()
 			dropdown = dropdown.parentNode;
 		}
 		const items = dropdown.childNodes;
-		console.log(items);
 
 		const alreadyHidden = dropdown.lastChild.style.display === 'none';
 		items.forEach(child => {
@@ -151,6 +150,13 @@ function buildDragbar()
 	
             //TODO: make gate draggable to canvas
             dragBody.onmousedown = (event) => {
+                if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
+
+                //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
+                tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
+                tempQuantumLine.gates[0].setTransparency(0.4);
+                Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+
                 let dragGate = document.createElement('div');
                 dragGate.style.width = PACKAGE_SIZE + "px";
                 dragGate.style.height = PACKAGE_SIZE + "px";
@@ -191,16 +197,19 @@ function buildDragbar()
                     body.removeEventListener('mouseup', mouseUp);
                     body.removeChild(dragGate);
 
+                    tempQuantumLine = undefined;
+
                     if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
                         && event.clientY > canviBounds.top + PACKAGE_SIZE 
                         && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
                     {
                         // Place the gate into the circuit where it belongs
                         let lineIndex = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) - 1;
-                        let gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 3;
+                        let gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 2;
                         allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol);
-                        updateCurrentCircuit();
                     }
+
+                    updateCurrentCircuit();
                 }
 
                 body.addEventListener('mousemove', mouseMove);
@@ -277,6 +286,8 @@ function resizeBaseCanvas()
     Render.drawGrid(ctx, "#bababa", baseCanvas.width, baseCanvas.height, PACKAGE_SIZE);
 }
 
+var activeStateSelector;
+var tempQuantumLine;
 function updateCurrentCircuit()
 {
     var ctx = allContexts[activeCanvas];
@@ -286,9 +297,12 @@ function updateCurrentCircuit()
     {
         Render.drawStateSelector(ctx, activeStateSelector.selector, -1, STATE_LABELS, activeStateSelector.hbox);
     }
+    if (tempQuantumLine != undefined)
+    {
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
 }
 
-var activeStateSelector;
 function buildInitStateSelector(lineIndex, hitbox, onDelete)
 {
     if (activeStateSelector != undefined)
