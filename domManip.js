@@ -3,6 +3,9 @@
 
 const Render = getRender();
 
+const STATE_LABELS = ["|-i⟩", "|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩"];
+const QUBIT_MAX = 8;    // The maximum number of qubits allowed to simulated by the circuit
+
 var allCanvasElements = [];
 var allCanvasWraps = [];
 var allContexts = [];
@@ -35,7 +38,8 @@ function buildDragbar()
 	// A gate is taken in as a JSON object
 	// It looks like:
 	// {
-	// 		"name": "Hadmard",
+    // 		"name": "Hadmard",
+    //      "id": 0,
 	// 		"symbol": "H",
 	//		"description:": "DESC_HERE",
 	//		"matrix": "Store matrix somehow if used (Image?)"
@@ -44,10 +48,15 @@ function buildDragbar()
 	
     const dragbar = document.getElementById("dragbar");
 
-	const toggleChildren = (elem) => {
-		const items = elem.target.parentNode.childNodes;
+	const toggleChildren = (elem) => { //if reusing func, add in targetclass as second param
+		// function is used from multiple levels, and I always want to target the same tag
+		let dropdown = elem.target.parentNode;
+		while (!dropdown.classList.contains('dropdown')) { // classList is a DOMtokenlist, not array
+			dropdown = dropdown.parentNode;
+		}
+		const items = dropdown.childNodes;
 
-		const alreadyHidden = elem.target.parentNode.lastChild.style.display === 'none';
+		const alreadyHidden = dropdown.lastChild.style.display === 'none';
 		items.forEach(child => {
 			if (child.nodeName === 'P') {
 				// rotate triangle
@@ -75,7 +84,8 @@ function buildDragbar()
 		const label = document.createElement('p');
 		label.innerHTML = name;
 		label.classList.add('dropLabel');
-		label.addEventListener('click', toggleChildren, bar);
+		label.style.setProperty('cursor', 'pointer');
+		label.addEventListener('click', toggleChildren);
 		bar.appendChild(label);
 
 		//create triangle to show if open or closed
@@ -89,22 +99,27 @@ function buildDragbar()
 
 	//const gates = (await (await fetch('localhost:9001/gates')).json()).gates; // just for now, need to set up on real server
 
-	const gates = [
-		{"name": "Hadamard", "symbol": "H", "description": "desc", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Z", "symbol": "Z", "description": "desc", "matrix": "mat", "gate": undefined},
-		{"name": "Pauli-Y", "symbol": "Y", "description": "desc\nription", "matrix": "mat", "gate": undefined}
-	];
+	const singleQubitGates = [
+        {"name": "Hadamard", "id": 1, "symbol": "H", "description": "Simple superposition gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-X", "id": 2, "symbol": "X", "description": "NOT gate.", "matrix": "mat", "gate": undefined},
+        {"name": "Pauli-Y", "id": 3, "symbol": "Y", "description": "NOT & Phase flip gate.", "matrix": "mat", "gate": undefined},
+		{"name": "Pauli-Z", "id": 4, "symbol": "Z", "description": "Phase flip gate.", "matrix": "mat", "gate": undefined}
+    ];
+    const multiQubitGates = [
+        {"name": "C-Not", "id": 5, "symbol": "⊕", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+		{"name": "SWAP", "id": 6, "symbol": "✖", "description": "Work In Progress", "matrix": "mat", "gate": undefined},
+    ];
 
 	// in future will be populated with more than just gates
 	// ex: measurements, transforms, part of c-not and others
 	const dropbaritems = [ //please come up with a better name
 		{
-			"name": "Gates",
-			"items": gates
+			"name": "Single Qubit Gates",
+			"items": singleQubitGates
 		},
 		{ 
-			"name": "Gates",
-			"items": gates
+			"name": "Multi Qubit Gates",
+			"items": multiQubitGates
 		}
 	];
 
@@ -113,17 +128,18 @@ function buildDragbar()
 
 		// add gates to div
 		dropdown.items.forEach(gate => {
-			const body = document.createElement('div');
-			body.classList.add('dragBody');
+			const dragBody = document.createElement('div');
+			dragBody.style.setProperty('cursor', 'pointer');
+			dragBody.classList.add('dragBody');
 			
 			const symbol = document.createElement('p');
 			symbol.classList.add('gateSymbol');
 			symbol.innerHTML = gate.symbol;
-			body.appendChild(symbol);
+			dragBody.appendChild(symbol);
 			const name = document.createElement('p');
 			name.classList.add('gateName');
 			name.innerHTML = gate.name;
-			body.appendChild(name);
+			dragBody.appendChild(name);
 	
 			const ttc = document.createElement('div');
 			ttc.classList.add('ttc');
@@ -131,11 +147,15 @@ function buildDragbar()
 			desc.classList.add('tooltip');
 			desc.innerHTML = gate.description.replace('\n', '<br />'); 
 			ttc.appendChild(desc);
-			body.appendChild(ttc);
+			dragBody.appendChild(ttc);
 	
-			//TODO: make gate draggable to canvas
+            dragBody.onmousedown = (event) => {
+                if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
+                createTempLine();
+                let draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
+            };
 	
-			bar.appendChild(body);
+			bar.appendChild(dragBody);
 		});
 	});
 }
@@ -160,6 +180,15 @@ function buildCanvas()
     allCanvasElements[id] = canvas;
     allContexts[id] = ctx;
     allCanvasWraps[id] = canvasWrap;
+
+    canvas.onclick = () => {
+        if (activeStateSelector != undefined)
+        {
+            activeStateSelector.selector.deleteSelf();
+            activeStateSelector = undefined;
+            updateCurrentCircuit();
+        }
+    };
 
     canvi.append(canvasWrap);
     canvasWrap.append(canvas);
@@ -195,34 +224,72 @@ function resizeBaseCanvas()
     Render.drawGrid(ctx, "#bababa", baseCanvas.width, baseCanvas.height, PACKAGE_SIZE);
 }
 
+var activeStateSelector;
+var tempQuantumLine;
 function updateCurrentCircuit()
 {
     var ctx = allContexts[activeCanvas];
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+    if (activeStateSelector != undefined)
+    {
+        Render.drawStateSelector(ctx, activeStateSelector.selector, -1, STATE_LABELS, activeStateSelector.hbox);
+    }
+    if (tempQuantumLine != undefined)
+    {
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
 }
 
-function buildInitStateSelector(lineIndex, hitbox)
+function createTempLine()
 {
-    // TODO: doesn't survive a window resize
+    //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
+    if (allCircuits[activeCanvas].width < QUBIT_MAX)
+    {
+        tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
+        tempQuantumLine.gates[0].setTransparency(0.4);
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
+}
+
+function deleteTempLine()
+{
+    tempQuantumLine = undefined;
+}
+
+function buildInitStateSelector(lineIndex, hitbox, onDelete)
+{
+    if (activeStateSelector != undefined)
+    {
+        activeStateSelector.selector.deleteSelf();
+        activeStateSelector = undefined;
+        updateCurrentCircuit();
+    }
+
     let ctx = allContexts[activeCanvas];
-    let labels = ["|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩", "|-i⟩"];
+    let wrap = allCanvasWraps[activeCanvas];
 
     let onEnter = (index) => {
-        updateCurrentCircuit()
-        Render.drawStateSelector(ctx, pieSelector, index, labels, hitbox);
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+        Render.drawStateSelector(ctx, pieSelector, index, STATE_LABELS, hitbox);
     };
-    let onLeave = (index) => {
-        updateCurrentCircuit()
-        Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
+    let onLeave = () => {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
+        Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
     };
     let onClick = (index) => {
+        activeStateSelector = undefined;
         allCircuits[activeCanvas].setInitalQubit(lineIndex, index);
+        pieSelector.deleteSelf();
         updateCurrentCircuit();
     };
 
-    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, labels.length, allCanvasWraps[activeCanvas], onEnter, onLeave, onClick);
-    Render.drawStateSelector(ctx, pieSelector, -1, labels, hitbox);
+    var pieSelector = new PieSelector(hitbox.midX, hitbox.midY, PACKAGE_SIZE + BOX_SIZE, STATE_LABELS.length, wrap, onEnter, onLeave, onClick);
+    pieSelector.setOnDelete(onDelete);
+    activeStateSelector = {selector: pieSelector, hbox: hitbox};
+    Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
 }
 
 function unsupported()

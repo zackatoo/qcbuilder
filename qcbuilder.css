@@ -4,6 +4,7 @@
     float: left;
     width: 100%;
     overflow: hidden;
+    user-select: none;
 }
 
 #title {
@@ -82,7 +83,8 @@
 
 	display: flex;
 	flex-wrap: wrap;
-	align-content: flex-start;
+    align-content: flex-start;
+    user-select: none;
 }
 
 .dropLabel img {
@@ -96,10 +98,11 @@
 	width: 100%;
 	color: white;
 	font-weight: bold;
-	background-color: lightgrey;
+	background-color: #b5b5b5;
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+    align-items: center;
+    user-select: none;
 }
 
 .dragBody {
@@ -107,6 +110,7 @@
 	margin: 5px;
 	background-color: #E7F7FD;
 	width: 40%;
+	min-width: 120px;
 	height: 3em;
 
 	border-style: solid;
@@ -116,14 +120,16 @@
 
 	display: flex;
 	justify-content: space-around;
-	align-items: center;
+    align-items: center;
+    user-select: none;
 }
 
 .tooltip {
 	visibility: hidden;
-	background-color: black;
-	color: #ffffff;
-	padding: 5px;
+	background-color: white;
+	color: black;
+    padding: 5px;
+    border: 1px solid black;
 	text-align: center;
 	max-width: 200px;
 	min-width: 100px;
@@ -140,20 +146,34 @@
 	visibility: hidden;
 }
 
+.dragBody:hover {
+    background-color: #c9e5ef;
+}
+
 .dragBody:hover .ttc .tooltip {
 	visibility: visible;
-	transition-delay: 1s;
+	transition-delay: 0.25s;
 }
 
 .gateSymbol {
 	margin: 0px;
 	font-size: 32px;
-	font-weight: bold;
+    font-weight: bold;
+    user-select: none;
 }
 
 .gateName {
 	width: 50%;
-	text-align: center;
+    text-align: center;
+    user-select: none;
+}
+
+.dragGate {
+    background-color: white;
+    border: 1px solid black;
+    position: absolute;
+    cursor: grabbing;
+    text-align: center;
 }
 
 body {

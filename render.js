@@ -6,9 +6,12 @@ function getRender()
     return {
         drawGrid,
         drawStateSelector,
-        drawQuantumCircuit
+        drawQuantumCircuit,
+        drawQuantumLine
     };
 }
+
+var gateFontSize = 30;
 
 function drawGrid(context, color, width, height, increment)
 {
@@ -34,6 +37,10 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
     // This draws a circular pie selector around a center hitbox (without drawing overtop of the hitbox)
     // The pie selector should completely encapsulate the hitbox
     // The hitbox may be of any width & height and the pie selector may have any number of slices >= 3
+
+    context.font = "20px serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
 
     context.beginPath();
     context.arc(pieSelector.x, pieSelector.y, pieSelector.radius, 0, Math.PI * 2, false);
@@ -84,28 +91,31 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
             {
                 context.lineTo(getX(i, theta + incr), getY(i, theta + incr));
             }
-            let circleX = pieSelector.radius * Math.cos(theta) + pieSelector.x;
-            let circleY = pieSelector.radius * Math.sin(theta) + pieSelector.y;
+
+            let circlePos = fromPolar(pieSelector.radius, theta);
+            circlePos.x += pieSelector.x;
+            circlePos.y += pieSelector.y;
 
             context.lineTo(pieSelector.radius * Math.cos(theta + incr) + pieSelector.x, pieSelector.radius * Math.sin(theta + incr) + pieSelector.y);
-            context.arcTo(hypot * Math.cos(theta + incr / 2) + pieSelector.x, hypot * Math.sin(theta + incr / 2) + pieSelector.y, circleX, circleY, pieSelector.radius);
+            let hypotPos = fromPolar(hypot, theta + incr / 2);
+            context.arcTo(hypotPos.x + pieSelector.x, hypotPos.y + pieSelector.y, circlePos.x, circlePos.y, pieSelector.radius);
             context.lineTo(x, y);
-            if (selectedSector == (sector + pieSelector.numSlices - 1) % pieSelector.numSlices)
-            {
-                context.fillStyle = "rgba(206, 206, 206, 0.4)";
-            }
-            else
-            {
-                context.fillStyle = "#cecece";
-            }
+
+            let isSelected = selectedSector == (sector + pieSelector.numSlices - 1) % pieSelector.numSlices;
+            context.fillStyle = "rgba(206,206,206," + (isSelected ? 0.4 : 1) + ")";
             
             context.fill();
 
             // Draw the outline
             context.beginPath();
             context.moveTo(x, y);
-            context.lineTo(circleX, circleY);
+            context.lineTo(circlePos.x, circlePos.y);
             context.stroke();
+
+            // Draw the text
+            context.fillStyle = "rgba(0,0,0," + (isSelected ? 0.4 : 1) + ")";
+            let textPos = fromPolar(pieSelector.radius * 0.74, theta + incr / 2);
+            context.fillText(labels[sector], textPos.x + pieSelector.x, textPos.y + pieSelector.y);
 
             theta += incr;
             sector++;
@@ -123,7 +133,7 @@ function drawQuantumCircuit(context, circuit)
     }
 }
 
-function drawQuantumLine(context, line)
+function drawQuantumLine(context, line, connectorColor)
 {
     var hitbox = line.gates[0].hitbox;
     var lineStarts = [];
@@ -139,7 +149,7 @@ function drawQuantumLine(context, line)
             {
                 var thisHitbox = line.gates[i].hitbox;
                 lineStarts[lineIndex + 1] = thisHitbox.cornerX + thisHitbox.width;
-                lineEnds[i] = line.gates[i].hitbox.cornerX;
+                lineEnds[lineIndex] = line.gates[i].hitbox.cornerX;
                 lineIndex++;
             }
             drawQuantumGate(context, line.gates[i]);
@@ -148,6 +158,7 @@ function drawQuantumLine(context, line)
 
     // Draws the black lines connecting each of the gates on the same quantum line
     context.beginPath();
+    context.strokeStyle = connectorColor == undefined ? "#000" : connectorColor;
     let i = 0;
     for (; i < lineEnds.length; i++)
     {
@@ -157,7 +168,10 @@ function drawQuantumLine(context, line)
 
     context.moveTo(0.5 + lineStarts[i], 0.5 + hitbox.midY);
     context.lineTo(context.canvas.width, 0.5 + hitbox.midY);
+    context.lineWidth = 2;
     context.stroke();
+    context.lineWidth = 1;
+    context.strokeStyle = "#000";
 }
 
 function drawQuantumGate(context, gate)
@@ -171,9 +185,16 @@ function drawQuantumGate(context, gate)
     context.fillRect(corner.x, corner.y + hitbox.height * (1 - gate.probability), hitbox.width, hitbox.height * gate.probability);
     context.strokeRect(corner.x, corner.y, hitbox.width, hitbox.height);
 
-    context.font = "30px serif";
+    context.font = gateFontSize + "px serif";
     context.fillStyle = "rgba(0,0,0," + gate.transparency + ")";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(gate.name, hitbox.midX, hitbox.midY);
+}
+
+// UTILITY FUNCTIONS
+
+function fromPolar(r, theta)
+{
+    return {x: r * Math.cos(theta), y: r * Math.sin(theta)};
 }
