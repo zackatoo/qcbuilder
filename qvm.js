@@ -12,6 +12,7 @@ class QuantumCircuit
 		this.lines = [];
         this.width = width;
         this.canvasWrap = canvasWrap;
+        this.maxLength = 1;
 
         for (let i = 0; i < width; i++)
         {
@@ -29,7 +30,7 @@ class QuantumCircuit
             this.width++;
         }
 
-        this.lines[lineIndex].insertGate(gateIndex, gateId, gateName, symbol);
+        this.maxLength = this.lines[lineIndex].insertGate(gateIndex, gateId, gateName, symbol, this.maxLength);
         this.updateAllLines();
     }
 
@@ -66,9 +67,11 @@ class QuantumCircuit
 
     updateAllLines()
     {
+        // Remove any empty rows & update each line
         let checkEmpty = true;
         for (let i = this.width - 1; i >= 0; i--)
         {
+            this.lines[i].updateLine();
             if (checkEmpty && i > 1)
             {
                 if (this.lines[i].isEmpty())
@@ -81,8 +84,40 @@ class QuantumCircuit
                     checkEmpty = false;
                 }
             }
-            this.lines[i].updateLine();
         }
+
+        // Remove any empty columns
+        for (let i = 1; i < this.maxLength; i++)
+        {
+            let isEmpty = true;
+            for (let j = 0; j < this.width; j++)
+            {
+                if (this.lines[j].gates[i] != undefined)
+                {
+                    isEmpty = false;
+                    break;
+                }
+            }
+            if (isEmpty)
+            {
+                for (let j = 0; j < this.width; j++)
+                {
+                    this.lines[j].moveGate(i + 1, i);
+                    this.lines[j].gates[i + 1] = undefined;
+                }
+            }
+        }
+
+        let previousMax = 1;
+        for (let i = 0; i < this.width; i++)
+        {
+            this.lines[i].updateLength(this.maxLength);
+            if (this.lines[i].length > previousMax)
+            {
+                previousMax = this.lines[i].length;
+            }
+        }
+        this.maxLength = previousMax;
     }
 }
 
@@ -146,38 +181,58 @@ class QuantumLine
         initHitbox.div.style.cursor = "pointer";
     }
 
-    insertGate(gateIndex, gateId, gateName, symbol)
+    insertGate(gateIndex, gateId, gateName, symbol, maxLength)
     {
         // gateIndex tells where in the line to place the gate.
         // If gateIndex is even it is overriding another gate (or empty space)
         // If it is odd then it is inserting itself between two other gates.
 
-        if (gateIndex >= this.length * 2 - 1)
+        if (gateIndex >= maxLength * 2 - 1)
         {
             // Append this gate to the end of the line
-            let previousQubit = this.getPreviousQubit(this.length);
-            this.gates[this.length] = new QuantumGate(this.length, gateId, gateName, previousQubit, undefined);
-            this.gates[this.length].setHitbox(this.createHitbox(this.gates[this.length], gateId, gateName, symbol));
-            this.length++;
+            let previousQubit = this.getPreviousQubit(maxLength);
+            this.gates[maxLength] = new QuantumGate(maxLength, gateId, gateName, previousQubit, undefined);
+            this.gates[maxLength].setHitbox(this.createHitbox(this.gates[maxLength], gateId, gateName, symbol));
+            this.length = maxLength + 1;
+            return maxLength + 1;
         }
         else if (gateIndex % 2 == 1)
         {
             // Insert the gate into the array without overwriting anything
             let newIndex = Math.floor(gateIndex / 2) + 1;
+            let written = false;
+            if (this.gates[newIndex - 1] == undefined)
+            {
+                newIndex--;
+                written = true;
+            }
             let previousQubit = this.getPreviousQubit(newIndex - 1);
             let newGate = new QuantumGate(newIndex, gateId, gateName, previousQubit, undefined);
             newGate.setHitbox(this.createHitbox(newGate, gateId, gateName, symbol));
-            this.gates.splice(newIndex, 0, newGate);
+            if (this.gates[newIndex] == undefined || written)
+            {
+                this.gates[newIndex] = newGate;
+                written = true;
+            }
+            else
+            {
+                this.spliceGate(newIndex, newGate);
+            }
             
             this.length++;
-            for (let i = newIndex + 1; i < this.length; i++)
+            if (!written)
             {
-                if (this.gates[i] != undefined)
+                for (let i = newIndex + 1; i < this.length; i++)
                 {
-                    this.gates[i].index++;
-                    this.gates[i].hitbox.setMiddlePosition(GATE_SPACE * (this.gates[i].index + 1), GATE_SPACE * (this.index + 1));
+                    if (this.gates[i] != undefined)
+                    {
+                        this.gates[i].index++;
+                        this.gates[i].hitbox.setMiddlePosition(GATE_SPACE * (this.gates[i].index + 1), GATE_SPACE * (this.index + 1));
+                    }
                 }
             }
+            this.length = maxLength + 1;
+            return maxLength + 1;
         }
         else
         {
@@ -185,13 +240,59 @@ class QuantumLine
             gateIndex /= 2;
             if (this.gates[gateIndex] != undefined)
             {
-                this.gates[gateIndex].changeGate(gateId, gateName);
+                this.gates[gateIndex].changeGate(gateId, gateName, symbol);
             }
             else
             {
                 let previousQubit = this.getPreviousQubit(gateIndex);
                 this.gates[gateIndex] = new QuantumGate(gateIndex, gateId, gateName, previousQubit, undefined);
                 this.gates[gateIndex].setHitbox(this.createHitbox(this.gates[gateIndex], gateId, gateName, symbol));
+            }
+            this.length = maxLength;
+            return maxLength;
+        }
+    }
+
+    spliceGate(newIndex, newGate)
+    {
+        let temp;
+        let thisGate = newGate;
+
+        for (let i = newIndex; ; i++)
+        {
+            if (this.gates[i] == undefined)
+            {
+                this.gates[i] = thisGate;
+                break;
+            }
+            else
+            {
+                temp = this.gates[i];
+                this.gates[i] = thisGate;
+                thisGate = temp;
+            }
+        }
+    }
+
+    moveGate(oldPos, newPos)
+    {
+        // Should only be used if oldPos is undefined
+        this.gates[newPos] = this.gates[oldPos];
+        if (this.gates[newPos] != undefined)
+        {
+            this.gates[newPos].index = newPos;
+            this.gates[newPos].hitbox.setMiddlePosition(GATE_SPACE * (newPos + 1), GATE_SPACE * (this.index + 1));
+        }
+    }
+
+    updateLength(maxLen)
+    {
+        for (let i = maxLen + 2; i >= 0; i--)
+        {
+            if (this.gates[i] != undefined)
+            {
+                this.length = i + 1;
+                break;
             }
         }
     }
@@ -207,7 +308,7 @@ class QuantumLine
                 break;
             }
         }
-        return previousQubit
+        return previousQubit;
     }
 
     createHitbox(gate, gateId, gateName, symbol)
@@ -230,13 +331,10 @@ class QuantumLine
         hitbox.setOnMouseDown( (event) => 
         {
             hitbox.canHover = false;
-            this.gates[gate.index] = undefined;
-            if (gate.index == this.length - 1)
-            {
-                this.length--;
-            }
+            let sym = this.gates[gate.index].symbol == undefined ? symbol : this.gates[gate.index].symbol;
             createTempLine();
-            let draggableGate = new DraggableGate(event.clientX, event.clientY, document.getElementsByTagName("body")[0], {id: gateId, symbol:gateName}, symbol);
+            let draggableGate = new DraggableGate(event.clientX, event.clientY, document.getElementsByTagName("body")[0], {id: this.gates[gate.index].gate, symbol:this.gates[gate.index].name}, sym);
+            this.gates[gate.index] = undefined;
 
             updateCurrentCircuit();
             hitbox.deleteSelf();
@@ -346,11 +444,12 @@ class QuantumGate
         this.hitbox = hitbox;
     }
 
-    changeGate(gate, name)
+    changeGate(gate, name, symbol)
     {
         // Requires running an updateLine() in parent Quantum Line after this method is used
         this.gate = gate;
         this.name = name;
+        this.symbol = symbol;
     }
 
     applyGate(inputQubit)
