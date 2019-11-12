@@ -28,7 +28,7 @@ class Hitbox
         if (parent == undefined) return;
 
         this.div = document.createElement("div");
-        let style = this.div.style;
+        const style = this.div.style;
         style.position = "absolute";
         style.width = width + "px";
         style.height = height + "px";
@@ -128,8 +128,8 @@ class PieSelector
         this.selector.style.width = (radius * 2) + "px";
         this.selector.style.height = (radius * 2) + "px";
 
-        let lastWrapper = document.createElement("div");
-        let theta = 360 / numSlices;
+        const lastWrapper = document.createElement("div");
+        const theta = 360 / numSlices;
         
 
         function applyStyle(element)
@@ -143,7 +143,7 @@ class PieSelector
 
         for (let i = 0; i < numSlices; i++)
         {
-            let slice = document.createElement("div");
+            const slice = document.createElement("div");
             applyStyle(slice);
             slice.style.zIndex = i + 1;
 
@@ -157,7 +157,7 @@ class PieSelector
                 onClick(i);
             };
            
-            let angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
+            const angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
             slice.style.transform = "rotate(" + angle + "deg)";
 
             (i != numSlices - 1 ? this.selector : lastWrapper).append(slice);
@@ -183,19 +183,19 @@ class DraggableGate
 {
     constructor(x, y, parent, gate, symbol)
     {
-        let dragGate = document.createElement('div');
+        const dragGate = document.createElement('div');
         dragGate.style.width = PACKAGE_SIZE + "px";
         dragGate.style.height = PACKAGE_SIZE + "px";
         dragGate.style.left = (x - PACKAGE_SIZE / 2) + "px";
         dragGate.style.top = (y - PACKAGE_SIZE / 2) + "px";
-        let symbolClone = symbol.cloneNode(true);
+        const symbolClone = symbol.cloneNode(true);
         symbolClone.style.fontWeight = "normal";
         symbolClone.style.marginTop = (PACKAGE_SIZE / 10) + "px";
         dragGate.appendChild(symbolClone);
         dragGate.classList.add('dragGate');
 
         let mouseMove = (event) => {
-            let canviBounds = document.getElementById("canvi").getBoundingClientRect();
+            const canviBounds = document.getElementById("canvi").getBoundingClientRect();
             const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
 
             if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
@@ -203,8 +203,8 @@ class DraggableGate
                 && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
             {
                 // 'Sticky' dragging tries to snap the gate into a position on the circuit
-                let diffX = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) * PACKAGE_SIZE;
-                let diffY = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) * PACKAGE_SIZE * 2;
+                const diffX = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) * PACKAGE_SIZE;
+                const diffY = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) * PACKAGE_SIZE * 2;
                 dragGate.style.left = (diffX + canviBounds.left - PACKAGE_SIZE / 2) + "px";
                 dragGate.style.top = (diffY + canviBounds.top - PACKAGE_SIZE / 2) + "px";
             }
@@ -216,7 +216,7 @@ class DraggableGate
             }
         };
         let mouseUp = (event) => {
-            let canviBounds = document.getElementById("canvi").getBoundingClientRect();
+            const canviBounds = document.getElementById("canvi").getBoundingClientRect();
             const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
 
             parent.removeEventListener('mousemove', mouseMove);
