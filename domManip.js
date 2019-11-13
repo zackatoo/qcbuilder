@@ -151,8 +151,9 @@ function buildDragbar()
 	
             dragBody.onmousedown = (event) => {
                 if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
-                createTempLine();
-                const draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
+                const dragGate = document.createElement('div');
+               	createTempLine();
+                new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
             };
 	
 			bar.appendChild(dragBody);
