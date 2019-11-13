@@ -394,6 +394,8 @@ class QuantumGate
 
     setQubit(parameterArray)
     {
+		// parameterArray contains the real and imaginary parts of alpha and beta
+		// 0 = real alpha, 1 = imaginary alpha, 2 = real beta, 3 = imaginary beta
         this.qubit.setQubit(parameterArray);
         this.setColor();
     }
