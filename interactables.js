@@ -22,9 +22,13 @@ class Hitbox
 
         this.width = width;
         this.height = height;
+        this.canHover = true;
+        this.parent = parent;
+
+        if (parent == undefined) return;
 
         this.div = document.createElement("div");
-        let style = this.div.style;
+        const style = this.div.style;
         style.position = "absolute";
         style.width = width + "px";
         style.height = height + "px";
@@ -43,6 +47,16 @@ class Hitbox
     setOnMouseLeave(onMouseLeave)
     {
         this.div.onmouseleave = onMouseLeave;
+    }
+
+    setOnMouseDown(onMouseDown)
+    {
+        this.div.onmousedown = onMouseDown;
+    }
+
+    setOnMouseUp(onMouseUp)
+    {
+        this.div.onmouseup = onMouseUp;
     }
 
     setOnClick(onClick)
@@ -86,6 +100,11 @@ class Hitbox
     {
         return {x: this.midX, y: this.midY};
     }
+
+    deleteSelf()
+    {
+        this.parent.removeChild(this.div);
+    }
 }
 
 class PieSelector
@@ -109,8 +128,8 @@ class PieSelector
         this.selector.style.width = (radius * 2) + "px";
         this.selector.style.height = (radius * 2) + "px";
 
-        let lastWrapper = document.createElement("div");
-        let theta = 360 / numSlices;
+        const lastWrapper = document.createElement("div");
+        const theta = 360 / numSlices;
         
 
         function applyStyle(element)
@@ -124,7 +143,7 @@ class PieSelector
 
         for (let i = 0; i < numSlices; i++)
         {
-            let slice = document.createElement("div");
+            const slice = document.createElement("div");
             applyStyle(slice);
             slice.style.zIndex = i + 1;
 
@@ -138,7 +157,7 @@ class PieSelector
                 onClick(i);
             };
            
-            let angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
+            const angle = (i != numSlices - 1) ? (i + 1) * theta : theta - 90;
             slice.style.transform = "rotate(" + angle + "deg)";
 
             (i != numSlices - 1 ? this.selector : lastWrapper).append(slice);
@@ -157,5 +176,70 @@ class PieSelector
     {
         this.onDelete();
         this.parent.removeChild(this.selector);
+    }
+}
+
+class DraggableGate
+{
+    constructor(x, y, parent, gate, symbol)
+    {
+        const dragGate = document.createElement('div');
+        dragGate.style.width = PACKAGE_SIZE + "px";
+        dragGate.style.height = PACKAGE_SIZE + "px";
+        dragGate.style.left = (x - PACKAGE_SIZE / 2) + "px";
+        dragGate.style.top = (y - PACKAGE_SIZE / 2) + "px";
+        const symbolClone = symbol.cloneNode(true);
+        symbolClone.style.fontWeight = "normal";
+        symbolClone.style.marginTop = (PACKAGE_SIZE / 10) + "px";
+        dragGate.appendChild(symbolClone);
+        dragGate.classList.add('dragGate');
+
+        let mouseMove = (event) => {
+            const canviBounds = document.getElementById("canvi").getBoundingClientRect();
+            const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
+
+            if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
+                && event.clientY > canviBounds.top + PACKAGE_SIZE 
+                && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
+            {
+                // 'Sticky' dragging tries to snap the gate into a position on the circuit
+                const diffX = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) * PACKAGE_SIZE;
+                const diffY = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) * PACKAGE_SIZE * 2;
+                dragGate.style.left = (diffX + canviBounds.left - PACKAGE_SIZE / 2) + "px";
+                dragGate.style.top = (diffY + canviBounds.top - PACKAGE_SIZE / 2) + "px";
+            }
+            else
+            {
+                // Allow smooth dragging when outside the circuit
+                dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
+                dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
+            }
+        };
+        let mouseUp = (event) => {
+            const canviBounds = document.getElementById("canvi").getBoundingClientRect();
+            const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
+
+            parent.removeEventListener('mousemove', mouseMove);
+            parent.removeEventListener('mouseup', mouseUp);
+            parent.removeChild(dragGate);
+
+            deleteTempLine();
+
+            if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
+                && event.clientY > canviBounds.top + PACKAGE_SIZE 
+                && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
+            {
+                // Place the gate into the circuit where it belongs
+                let lineIndex = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) - 1;
+                let gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 2;
+                allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol, symbol);
+            }
+
+            updateCurrentCircuit();
+        }
+
+        parent.addEventListener('mousemove', mouseMove);
+        parent.addEventListener('mouseup', mouseUp);
+        parent.append(dragGate);
     }
 }

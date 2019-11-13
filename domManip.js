@@ -4,6 +4,7 @@
 const Render = getRender();
 
 const STATE_LABELS = ["|-i⟩", "|0⟩", "|-⟩", "|i⟩", "|1⟩", "|+⟩"];
+const QUBIT_MAX = 8;    // The maximum number of qubits allowed to simulated by the circuit
 
 var allCanvasElements = [];
 var allCanvasWraps = [];
@@ -148,73 +149,11 @@ function buildDragbar()
 			ttc.appendChild(desc);
 			dragBody.appendChild(ttc);
 	
-            //TODO: make gate draggable to canvas
             dragBody.onmousedown = (event) => {
-                const dragGate = document.createElement('div');
                 if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
-
-                //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
-                tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
-                tempQuantumLine.gates[0].setTransparency(0.4);
-                Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
-
-                dragGate.style.width = PACKAGE_SIZE + "px";
-                dragGate.style.height = PACKAGE_SIZE + "px";
-                dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
-                dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
-                const symbolClone = symbol.cloneNode(true);
-                symbolClone.style.fontWeight = "normal";
-                symbolClone.style.marginTop = (PACKAGE_SIZE / 10) + "px";
-                dragGate.appendChild(symbolClone);
-                dragGate.classList.add('dragGate');
-
-                const mouseMove = (event) => {
-                    const canviBounds = document.getElementById("canvi").getBoundingClientRect();
-                    const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
-
-                    if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
-                     && event.clientY > canviBounds.top + PACKAGE_SIZE 
-                     && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
-                    {
-                        // 'Sticky' dragging tries to snap the gate into a position on the circuit
-                        const diffX = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) * PACKAGE_SIZE;
-                        const diffY = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) * PACKAGE_SIZE * 2;
-                        dragGate.style.left = (diffX + canviBounds.left - PACKAGE_SIZE / 2) + "px";
-                        dragGate.style.top = (diffY + canviBounds.top - PACKAGE_SIZE / 2) + "px";
-                    }
-                    else
-                    {
-                        // Allow smooth dragging when outside the circuit
-                        dragGate.style.left = (event.clientX - PACKAGE_SIZE / 2) + "px";
-                        dragGate.style.top = (event.clientY - PACKAGE_SIZE / 2) + "px";
-                    }
-                };
-                const mouseUp = (event) => {
-                    const canviBounds = document.getElementById("canvi").getBoundingClientRect();
-                    const yOffset = (allCircuits[activeCanvas].width + 1) * PACKAGE_SIZE * 2;
-
-                    body.removeEventListener('mousemove', mouseMove);
-                    body.removeEventListener('mouseup', mouseUp);
-                    body.removeChild(dragGate);
-
-                    tempQuantumLine = undefined;
-
-                    if (event.clientX > canviBounds.left + 3 * PACKAGE_SIZE 
-                        && event.clientY > canviBounds.top + PACKAGE_SIZE 
-                        && event.clientY < canviBounds.top + PACKAGE_SIZE + yOffset)
-                    {
-                        // Place the gate into the circuit where it belongs
-                        const lineIndex = Math.round((event.clientY - canviBounds.top) / (PACKAGE_SIZE * 2)) - 1;
-                        const gateIndex = Math.round((event.clientX - canviBounds.left) / PACKAGE_SIZE) - 2;
-                        allCircuits[activeCanvas].insertGate(lineIndex, gateIndex, gate.id, gate.symbol);
-                    }
-
-                    updateCurrentCircuit();
-                }
-
-                body.addEventListener('mousemove', mouseMove);
-                body.addEventListener('mouseup', mouseUp);
-                body.append(dragGate);
+                const dragGate = document.createElement('div');
+               	createTempLine();
+                const draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
             };
 	
 			bar.appendChild(dragBody);
@@ -225,20 +164,20 @@ function buildDragbar()
 function buildCanvas()
 {
     // Builds a new canvas to build a circuit in, then insert into the document
-    var canvi = document.getElementById("canvi");
+    const canvi = document.getElementById("canvi");
 
     // Since we cannot place things directly into a canvas we need a wrapper to hold both the canvas 
     // and all of it's hitboxes
-    var canvasWrap = document.createElement("div");
+    const canvasWrap = document.createElement("div");
     canvasWrap.className = "canvaswrap";
 
-    var canvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas");
     if (!canvas.getContext) return unsupported();
 
-    var id = allCanvasElements.length;
+    const id = allCanvasElements.length;
     canvas.id = "canvas-" + id;
     canvas.className = "canvas";
-    var ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     allCanvasElements[id] = canvas;
     allContexts[id] = ctx;
     allCanvasWraps[id] = canvasWrap;
@@ -263,7 +202,7 @@ function buildCanvas()
 
 function resizeActiveCanvas()
 {
-    var canvas = allCanvasElements[activeCanvas];
+    const canvas = allCanvasElements[activeCanvas];
     canvas.width = canvi.offsetWidth;
     canvas.height = canvi.offsetHeight;
 
@@ -278,7 +217,7 @@ function buildBaseCanvas()
 
 function resizeBaseCanvas()
 {
-    var ctx = baseCanvas.getContext("2d");
+    const ctx = baseCanvas.getContext("2d");
     baseCanvas.width = canvi.offsetWidth;
     baseCanvas.height = canvi.offsetHeight;
 
@@ -290,7 +229,7 @@ var activeStateSelector;
 var tempQuantumLine;
 function updateCurrentCircuit()
 {
-    var ctx = allContexts[activeCanvas];
+    const ctx = allContexts[activeCanvas];
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
     if (activeStateSelector != undefined)
@@ -303,6 +242,22 @@ function updateCurrentCircuit()
     }
 }
 
+function createTempLine()
+{
+    //Create a temporary transparent quantum line which the user can place gates on to add a qubit to the circuit
+    if (allCircuits[activeCanvas].width < QUBIT_MAX)
+    {
+        tempQuantumLine = new QuantumLine(allCircuits[activeCanvas].width, "0", allCanvasWraps[activeCanvas], true);
+        tempQuantumLine.gates[0].setTransparency(0.4);
+        Render.drawQuantumLine(allContexts[activeCanvas], tempQuantumLine, "rgba(0,0,0,0.4)");
+    }
+}
+
+function deleteTempLine()
+{
+    tempQuantumLine = undefined;
+}
+
 function buildInitStateSelector(lineIndex, hitbox, onDelete)
 {
     if (activeStateSelector != undefined)
@@ -312,20 +267,20 @@ function buildInitStateSelector(lineIndex, hitbox, onDelete)
         updateCurrentCircuit();
     }
 
-    let ctx = allContexts[activeCanvas];
-    let wrap = allCanvasWraps[activeCanvas];
+    const ctx = allContexts[activeCanvas];
+    const wrap = allCanvasWraps[activeCanvas];
 
-    let onEnter = (index) => {
+    const onEnter = (index) => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
         Render.drawStateSelector(ctx, pieSelector, index, STATE_LABELS, hitbox);
     };
-    let onLeave = () => {
+    const onLeave = () => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         Render.drawQuantumCircuit(ctx, allCircuits[activeCanvas]);
         Render.drawStateSelector(ctx, pieSelector, -1, STATE_LABELS, hitbox);
     };
-    let onClick = (index) => {
+    const onClick = (index) => {
         activeStateSelector = undefined;
         allCircuits[activeCanvas].setInitalQubit(lineIndex, index);
         pieSelector.deleteSelf();
@@ -342,7 +297,7 @@ function unsupported()
 {
     // User's browser is not up-to-date so we shut down the webapp.
     activeCanvas = -1;
-    var unsupportedDiv = document.createElement("div");
+    const unsupportedDiv = document.createElement("div");
     unsupportedDiv.id = "unsupported";
     unsupportedDiv.innerHTML = "Your browser does not support this website. Please update to a newer version.";
     body.append(unsupportedDiv);

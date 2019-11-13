@@ -50,8 +50,8 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
 
     // Psi is the angle to the next corner of the center hitbox
     let psi = -Math.atan(centerHitbox.height / 2 / (centerHitbox.width / 2));
-    let incr = 2 * Math.PI / pieSelector.numSlices;
-    let hypot = pieSelector.radius / Math.cos(incr / 2);
+    const incr = 2 * Math.PI / pieSelector.numSlices;
+    const hypot = pieSelector.radius / Math.cos(incr / 2);
 
     // Due to CSS context stacking messing with the zIndex, we need to start at -pi instead of zero
     let theta = -Math.PI;
@@ -72,15 +72,15 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
     for (let i = 0, sector = 0; i <= 4; i++)
     {
         psi = i * Math.PI - psi;
-        let phi = psi - Math.PI;
+        const phi = psi - Math.PI;
         // Necessary error must be added in here because of how floating point computation rounds
         // Unless it is drawing a pie selector with over a hundred slices this error won't impact the drawing
         while (sector != pieSelector.numSlices && theta < phi)
         {
             // Fill in the slices
             context.beginPath();
-            let x = getX(i, theta);
-            let y = getY(i, theta);
+            const x = getX(i, theta);
+            const y = getY(i, theta);
             context.moveTo(x, y);
             if (theta + incr > phi)
             {
@@ -92,16 +92,16 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
                 context.lineTo(getX(i, theta + incr), getY(i, theta + incr));
             }
 
-            let circlePos = fromPolar(pieSelector.radius, theta);
+            const circlePos = fromPolar(pieSelector.radius, theta);
             circlePos.x += pieSelector.x;
             circlePos.y += pieSelector.y;
 
             context.lineTo(pieSelector.radius * Math.cos(theta + incr) + pieSelector.x, pieSelector.radius * Math.sin(theta + incr) + pieSelector.y);
-            let hypotPos = fromPolar(hypot, theta + incr / 2);
+            const hypotPos = fromPolar(hypot, theta + incr / 2);
             context.arcTo(hypotPos.x + pieSelector.x, hypotPos.y + pieSelector.y, circlePos.x, circlePos.y, pieSelector.radius);
             context.lineTo(x, y);
 
-            let isSelected = selectedSector == (sector + pieSelector.numSlices - 1) % pieSelector.numSlices;
+            const isSelected = selectedSector == (sector + pieSelector.numSlices - 1) % pieSelector.numSlices;
             context.fillStyle = "rgba(206,206,206," + (isSelected ? 0.4 : 1) + ")";
             
             context.fill();
@@ -114,7 +114,7 @@ function drawStateSelector(context, pieSelector, selectedSector, labels, centerH
 
             // Draw the text
             context.fillStyle = "rgba(0,0,0," + (isSelected ? 0.4 : 1) + ")";
-            let textPos = fromPolar(pieSelector.radius * 0.74, theta + incr / 2);
+            const textPos = fromPolar(pieSelector.radius * 0.74, theta + incr / 2);
             context.fillText(labels[sector], textPos.x + pieSelector.x, textPos.y + pieSelector.y);
 
             theta += incr;
@@ -135,11 +135,11 @@ function drawQuantumCircuit(context, circuit)
 
 function drawQuantumLine(context, line, connectorColor)
 {
-    var hitbox = line.gates[0].hitbox;
-    var lineStarts = [];
+    const hitbox = line.gates[0].hitbox;
+    const lineStarts = [];
     lineStarts[0] = hitbox.cornerX + hitbox.width;
-    var lineEnds = [];
-    var lineIndex = 0;
+    const lineEnds = [];
+    let lineIndex = 0;
 
     for (let i = 0; i < line.length; i++)
     {
@@ -176,8 +176,8 @@ function drawQuantumLine(context, line, connectorColor)
 
 function drawQuantumGate(context, gate)
 {
-    var hitbox = gate.hitbox;
-    var corner = hitbox.getCornerPosition();
+    const hitbox = gate.hitbox;
+    const corner = hitbox.getCornerPosition();
 
     context.fillStyle = "rgba(255,255,255," + gate.transparency + ")";
     context.fillRect(corner.x, corner.y, hitbox.width, hitbox.height * (1 - gate.probability));
