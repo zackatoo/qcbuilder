@@ -153,7 +153,7 @@ function buildDragbar()
                 if (gate.id > 4) return;    // This is a temporary measure to disable the dragging and creation of CNot & SWAP gates until they are implemented
                 const dragGate = document.createElement('div');
                	createTempLine();
-                const draggableGate = new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
+                new DraggableGate(event.clientX, event.clientY, body, gate, symbol);
             };
 	
 			bar.appendChild(dragBody);
